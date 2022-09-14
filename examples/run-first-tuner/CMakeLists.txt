@@ -1,0 +1,4 @@
+morpheusoracle_include_directories(${CMAKE_CURRENT_BINARY_DIR})
+morpheusoracle_include_directories(${CMAKE_CURRENT_SOURCE_DIR})
+
+morpheusoracle_add_executable(run_first_tuner SOURCES run_first_tuner.cpp)
