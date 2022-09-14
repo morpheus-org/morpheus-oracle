@@ -1,0 +1,12 @@
+@PACKAGE_INIT@ 
+
+# Compute paths
+GET_FILENAME_COMPONENT(MorpheusOracle_CMAKE_DIR "${CMAKE_CURRENT_LIST_FILE}" PATH)
+
+include(CMakeFindDependencyMacro)
+
+@MORPHEUSORACLE_TPL_EXPORTS@
+
+find_dependency(Morpheus HINTS @Morpheus_DIR@)
+
+INCLUDE("${MorpheusOracle_CMAKE_DIR}/MorpheusOracleTargets.cmake")
