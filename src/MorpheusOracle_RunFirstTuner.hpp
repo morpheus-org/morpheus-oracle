@@ -26,27 +26,43 @@
 
 #include <iomanip>
 #include <iostream>
-#include <map>
-#include <vector>
+#include <limits>
 
-namespace MorpheusOracle {
+namespace Morpheus {
+namespace Oracle {
 
 class RunFirstTuner {
  public:
   RunFirstTuner(const size_t rep_limit = 10, const bool verbose = false)
-      : format_id_(0),
-        format_ids(rep_limit, 0),
+      : timings_(Morpheus::NFORMATS, rep_limit, 0),
+        max_timings_(Morpheus::NFORMATS, 0),
+        avg_timings_(Morpheus::NFORMATS, 0),
+        min_timings_(Morpheus::NFORMATS, 0),
+        format_id_(0),
+        format_count_(0),
+        nformats_(Morpheus::NFORMATS),
         rep_limit_(rep_limit),
         rep_count_(0),
         verbose_(verbose) {
     if (verbose) {
-      std::cout << "Tuner will run for " << rep_limit << " repetitions"
-                << std::endl;
-      std::cout << "  Repetition Number  | Format ID" << std::endl;
+      std::cout << "RunFirstTuner :: Tuner will run for " << rep_limit
+                << " repetitions.\n";
+      std::cout << "                 "
+                << "Each repetition tunes for " << nformats_ << " formats.\n";
+      std::cout << "  Repetition Number   |   Format ID" << std::endl;
     }
   }
 
-  void operator++() { rep_count_++; }
+  void operator++() {
+    if (format_count_ < nformats_ - 1) {
+      format_count_++;
+    } else {
+      format_count_ = 0;
+      rep_count_++;
+    }
+  }
+
+  int nformats() const { return nformats_; }
 
   int format_id() const { return format_id_; }
 
@@ -54,41 +70,34 @@ class RunFirstTuner {
 
   size_t repetition_limit() const { return rep_limit_; }
 
-  bool finished(int fmt_id) {
-    format_id_ = fmt_id;
-    format_ids.push_back(format_id_);
-
+  bool finished() {
     if (verbose_) {
       std::cout << "       " << std::setw(10) << repetition_count();
       std::cout << "       " << std::setw(10) << format_id() << std::endl;
     }
 
-    return repetition_count() >= repetition_limit() ? true : false;
+    int completed = repetition_count() >= repetition_limit() ? true : false;
+
+    if (completed) {
+      compute_max_timings_();
+      compute_avg_timings_();
+      compute_min_timings_();
+    }
+    return completed;
   }
 
-  void set_verbose(bool verbose_ = true) { verbose_ = verbose_; }
+  void register_run(double runtime) {
+    timings_(format_id_, rep_count_) = runtime;
+  }
+
+  void set_verbose(bool verbose = true) { verbose_ = verbose; }
 
   bool is_verbose() { return verbose_; }
 
   void reset() {
     format_id_ = 0;
     rep_count_ = 0;
-    format_ids.resize(0);
-  }
-
-  int most_common() {
-    int max = 0;
-    int most_common_ = -1;
-    std::map<int, int> map_;
-    for (auto vi = format_ids.begin(); vi != format_ids.end(); vi++) {
-      map_[*vi]++;
-      if (map_[*vi] > max) {
-        max = map_[*vi];
-        most_common_ = *vi;
-      }
-    }
-
-    return most_common_;
+    timings_.assign(nformats_, rep_limit_, 0);
   }
 
   void print() {
@@ -98,25 +107,62 @@ class RunFirstTuner {
       return;
     }
 
-    // report solver results
     if (repetition_count() >= repetition_limit()) {
       std::cout << "Tuner reached repetition limit of " << repetition_limit()
                 << "repetitions!" << std::endl;
     } else {
       throw std::runtime_error("Tuner is in inconsistent state.");
     }
-
-    std::cout << "Most common format : " << most_common() << std::endl;
   }
 
  private:
+  void compute_max_timings_() {
+    for (int i = 0; i < nformats_; i++) {
+      double maxt = std::numeric_limits<double>::min();
+      for (int j = 0; j < rep_limit_; j++) {
+        if (timings_(i, j) > maxt) {
+          max_timings_(i) = maxt;
+        }
+      }
+    }
+  }
+
+  void compute_avg_timings_() {
+    for (int i = 0; i < nformats_; i++) {
+      double sumt = 0.0;
+      for (int j = 0; j < rep_limit_; j++) {
+        sumt = timings_(i, j);
+      }
+      avg_timings_(i) = sumt / rep_limit_;
+    }
+  }
+
+  void compute_min_timings_() {
+    for (int i = 0; i < nformats_; i++) {
+      double mint = std::numeric_limits<double>::max();
+      for (int j = 0; j < rep_limit_; j++) {
+        if (timings_(i, j) < mint) {
+          min_timings_(i) = mint;
+        }
+      }
+    }
+  }
+
+  using vec2d = Morpheus::DenseMatrix<double, int, Kokkos::HostSpace>;
+  using vec   = Morpheus::DenseVector<double, Kokkos::HostSpace>;
+  vec2d timings_;
+  vec max_timings_;
+  vec avg_timings_;
+  vec min_timings_;
   int format_id_;
-  std::vector<int> format_ids;
+  int format_count_;
+  int nformats_;
   size_t rep_limit_;
   size_t rep_count_;
   bool verbose_;
 };
 
-}  // namespace MorpheusOracle
+}  // namespace Oracle
+}  // namespace Morpheus
 
 #endif  // MORPHEUSORACLE_RUNFIRSTTUNER_HPP
