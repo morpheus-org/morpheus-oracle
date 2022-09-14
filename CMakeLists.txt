@@ -57,6 +57,7 @@ if(MorpheusOracle_INSTALL_TESTING)
   # Don't build, load installed kernels
   find_package(MorpheusOracle REQUIRED)
 
+  include(cmake/morpheusoracle_gtest.cmake)
   # Only build the tests
   morpheusoracle_add_test_directories(tests)
   morpheusoracle_add_example_directories(examples)
@@ -69,6 +70,10 @@ else()
   endif()
 
   add_subdirectory(src)
+
+  if(MorpheusOracle_ENABLE_TESTS OR MorpheusOracle_ENABLE_EXAMPLES)
+    include(cmake/morpheusoracle_gtest.cmake)
+  endif()
 
   morpheusoracle_add_test_directories(tests)
   morpheusoracle_add_example_directories(examples)

@@ -1,5 +1,5 @@
 /**
- * run_first_tuner.cpp
+ * Test_RunFirstTuner.hpp
  *
  * EPCC, The University of Edinburgh
  *
@@ -21,6 +21,12 @@
  * limitations under the License.
  */
 
-#include <Morpheus_Oracle.hpp>
+#ifndef TEST_ORACLE_TEST_RUNFIRSTTUNER_HPP
+#define TEST_ORACLE_TEST_RUNFIRSTTUNER_HPP
 
-int main() { return 0; }
+#include <Morpheus_Oracle.hpp>
+#include <gtest/gtest.h>
+
+TEST(RunFirstTunerTest, DefaultConstruction) { EXPECT_EQ(1, 1); }
+
+#endif  // TEST_ORACLE_TEST_RUNFIRSTTUNER_HPP

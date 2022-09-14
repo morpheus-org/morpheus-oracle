@@ -1,5 +1,5 @@
 /**
- * run_first_tuner.cpp
+ * TestMain.cpp
  *
  * EPCC, The University of Edinburgh
  *
@@ -21,6 +21,20 @@
  * limitations under the License.
  */
 
+#include <gtest/gtest.h>
+#include <cstdlib>
+
 #include <Morpheus_Oracle.hpp>
 
-int main() { return 0; }
+int main(int argc, char *argv[]) {
+  int result;
+  ::testing::InitGoogleTest(&argc, argv);
+
+  Morpheus::initialize(argc, argv);
+  //   {
+
+  result = RUN_ALL_TESTS();
+  //   }
+  Morpheus::finalize();
+  return result;
+}
