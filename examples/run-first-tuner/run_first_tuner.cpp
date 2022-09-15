@@ -23,4 +23,38 @@
 
 #include <Morpheus_Oracle.hpp>
 
-int main() { return 0; }
+int main() {
+  Morpheus::initialize();
+  {
+    Morpheus::Oracle::RunFirstTuner tuner(10, true);
+    Morpheus::DynamicMatrix<double, Kokkos::HostSpace> A;
+    Morpheus::CsrMatrix<double, Kokkos::HostSpace> Acsr(4, 3, 6);
+
+    // initialize matrix entries
+    Acsr.row_offsets(0) = 0;
+    Acsr.row_offsets(1) = 2;
+    Acsr.row_offsets(2) = 2;
+    Acsr.row_offsets(3) = 3;
+    Acsr.row_offsets(4) = 6;
+
+    Acsr.column_indices(0) = 0;
+    Acsr.values(0)         = 10;
+    Acsr.column_indices(1) = 2;
+    Acsr.values(1)         = 20;
+    Acsr.column_indices(2) = 2;
+    Acsr.values(2)         = 30;
+    Acsr.column_indices(3) = 0;
+    Acsr.values(3)         = 40;
+    Acsr.column_indices(4) = 1;
+    Acsr.values(4)         = 50;
+    Acsr.column_indices(5) = 2;
+    Acsr.values(5)         = 60;
+
+    A = Acsr;
+
+    Morpheus::Oracle::tune_multiply<Kokkos::Serial>(A, tuner);
+    tuner.print();
+  }
+  Morpheus::finalize();
+  return 0;
+}
