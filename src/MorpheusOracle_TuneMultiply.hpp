@@ -1,5 +1,5 @@
 /**
- * Morpheus_Oracle.hpp
+ * MorpheusOracle_TuneMultiply.hpp
  *
  * EPCC, The University of Edinburgh
  *
@@ -21,12 +21,26 @@
  * limitations under the License.
  */
 
-#ifndef MORPHEUS_ORACLE_HPP
-#define MORPHEUS_ORACLE_HPP
+#ifndef MORPHEUSORACLE_TUNEMULTIPLY_HPP
+#define MORPHEUSORACLE_TUNEMULTIPLY_HPP
 
 #include <Morpheus_Core.hpp>
+#include <impl/MorpheusOracle_TuneMultiply_Impl.hpp>
 
-#include <MorpheusOracle_RunFirstTuner.hpp>
-#include <MorpheusOracle_TuneMultiply.hpp>
+namespace Morpheus {
+namespace Oracle {
 
-#endif  // MORPHEUS_ORACLE_HPP
+template <typename ExecSpace, typename Matrix, typename Tuner>
+void tune_multiply(Matrix& mat, Tuner& tuner) {
+  static_assert(Morpheus::is_dynamic_matrix_container<Matrix>::value,
+                "Input Matrix for the tuner must be a valid DynamicMatrix.");
+  static_assert(Morpheus::is_execution_space<ExecSpace>::value,
+                "Input Execution Space must be a valid Execution Space.");
+
+  Impl::tune_multiply<ExecSpace>(mat, tuner);
+}
+
+}  // namespace Oracle
+}  // namespace Morpheus
+
+#endif  // MORPHEUSORACLE_TUNEMULTIPLY_HPP
