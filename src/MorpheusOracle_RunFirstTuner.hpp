@@ -28,7 +28,9 @@
 #include <iostream>
 #include <limits>
 
+//! Generic Morpheus interfaces
 namespace Morpheus {
+//! Morpheus interfaces specific to Oracle package
 namespace Oracle {
 
 /**
