@@ -32,6 +32,14 @@ namespace Morpheus {
 namespace Oracle {
 
 /**
+ * \defgroup typetraits Type Traits
+ * \brief Various tools for examining the different types available and
+ * relationships between them during compile-time.
+ * \{
+ *
+ */
+
+/**
  * @brief A valid run first tuner is the one that is either of type
  * \p RunFirstTuner or a derived class of it.
  *
@@ -63,6 +71,9 @@ class is_run_first_tuner {
  */
 template <typename T>
 inline constexpr bool is_run_first_tuner_v = is_run_first_tuner<T>::value;
+
+/*! \} end of typetraits group
+ */
 
 }  // namespace Oracle
 }  // namespace Morpheus
