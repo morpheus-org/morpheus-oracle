@@ -50,15 +50,18 @@ void tune_multiply(
   auto mat_h = Morpheus::create_mirror_container(mat);
   Morpheus::copy(mat, mat_h);
 
+  size_t current_format = -1;
   while (!tuner.finished()) {
-    Morpheus::convert<Kokkos::Serial>(mat_h, tuner.format_count());
-    mat.resize(mat_h);
-    Morpheus::copy(mat_h, mat);
+    if (current_format != tuner.format_count()) {
+      // Convert only when we start a new format_count
+      Morpheus::convert<Kokkos::Serial>(mat_h, tuner.format_count());
+      mat.resize(mat_h);
+      Morpheus::copy(mat_h, mat);
+      current_format = tuner.format_count();
+    }
 
-    // Start timer here
     auto start = std::chrono::steady_clock::now();
     Morpheus::multiply<ExecSpace>(mat, x, y, true);
-    // Stop timer here
     auto end = std::chrono::steady_clock::now();
 
     double runtime = std::chrono::duration_cast<ns>(end - start).count() * 1e-9;
