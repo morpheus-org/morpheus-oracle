@@ -45,20 +45,28 @@ class RunFirstTuner {
         rep_count_(0),
         verbose_(verbose) {
     if (verbose) {
-      std::cout << "RunFirstTuner :: Tuner will run for " << rep_limit
-                << " repetitions.\n";
+      std::cout << "RunFirstTuner :: Tuner will run for " << nformats()
+                << " formats.\n";
       std::cout << "                 "
-                << "Each repetition tunes for " << nformats_ << " formats.\n";
-      std::cout << "  Repetition Number   |   Format ID" << std::endl;
+                << "Each format tunes for " << repetition_limit()
+                << " repetitions.\n";
+
+      std::cout << std::setw(10) << "Format ID";
+      std::cout << std::setw(3) << "|";
+      std::cout << std::setw(12) << "Repetition" << std::endl;
+
+      std::cout << std::setw(13) << "|";
+      std::cout << std::setw(12) << "Number" << std::endl;
+      std::cout << "-------------------------" << std::endl;
     }
   }
 
   void operator++() {
-    if (format_count_ < nformats_ - 1) {
-      format_count_++;
-    } else {
-      format_count_ = 0;
+    if (repetition_count() < repetition_limit() - 1) {
       rep_count_++;
+    } else {
+      format_count_++;
+      rep_count_ = 0;
     }
   }
 
@@ -67,7 +75,7 @@ class RunFirstTuner {
   size_t nformats() const { return nformats_; }
 
   size_t format_id() const {
-    if (repetition_count() >= repetition_limit()) {
+    if (format_count() >= nformats()) {
       return format_id_;
     } else {
       throw std::runtime_error(
@@ -82,11 +90,13 @@ class RunFirstTuner {
 
   bool finished() {
     if (verbose_) {
-      std::cout << "       " << std::setw(10) << repetition_count();
-      std::cout << "       " << std::setw(10) << format_count_ << std::endl;
+      std::cout << std::setw(10) << format_count();
+      std::cout << std::setw(3) << "|";
+      std::cout << std::setw(12) << repetition_count();
+      std::cout << std::endl;
     }
 
-    bool completed = repetition_count() >= repetition_limit() ? true : false;
+    bool completed = format_count() >= nformats() ? true : false;
 
     if (completed) {
       compute_max_timings_();
@@ -115,16 +125,16 @@ class RunFirstTuner {
   }
 
   void print() {
-    if ((repetition_count() == 0) && (format_id() == 0)) {
+    if ((repetition_count() == 0) && (format_count() == 0)) {
       std::cout << "Run-first Tuner configured with repetition limit "
                 << repetition_limit() << std::endl;
       return;
     }
 
-    if (repetition_count() >= repetition_limit()) {
+    if (format_count() >= nformats()) {
       using namespace std;
-      cout << "Tuner reached repetition limit of " << repetition_limit()
-           << " repetitions!" << endl;
+      cout << "Tuner executed " << repetition_limit() << " repetitions and "
+           << "optimized for " << nformats() << " formats!" << endl;
 
       cout << "\nTuner statistics:" << endl;
       cout << setw(10) << "Format ID\t";
@@ -150,10 +160,11 @@ class RunFirstTuner {
 
  private:
   void compute_best_format_id_() {
-    double mint = min_timings_(0);
+    // best format the one with the minimum average
+    double mint = avg_timings_(0);
     for (size_t i = 0; i < nformats_; i++) {
-      if (min_timings_(i) < mint) {
-        mint       = min_timings_(i);
+      if (avg_timings_(i) < mint) {
+        mint       = avg_timings_(i);
         format_id_ = i;
       }
     }
