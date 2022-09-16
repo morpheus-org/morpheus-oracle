@@ -100,7 +100,7 @@ class RunFirstTuner {
         max_timings_(Morpheus::NFORMATS, 0),
         avg_timings_(Morpheus::NFORMATS, 0),
         min_timings_(Morpheus::NFORMATS, 0),
-        format_id_(0),
+        format_id_(-1),
         format_count_(0),
         nformats_(Morpheus::NFORMATS),
         rep_limit_(rep_limit),
@@ -235,7 +235,7 @@ class RunFirstTuner {
    *
    */
   void reset() {
-    format_id_ = 0;
+    format_id_ = -1;
     rep_count_ = 0;
     timings_.assign(nformats_, rep_limit_, 0);
     max_timings_.assign(nformats_, 0);
