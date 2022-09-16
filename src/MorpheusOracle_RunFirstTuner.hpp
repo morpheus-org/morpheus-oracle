@@ -35,6 +35,8 @@ namespace Oracle {
  * \addtogroup tuners Tuners
  * \par Overview
  * TODO
+ * \brief A set of auto-tuners for automatic sparse matrix storage format
+ * selection.
  * \{
  *
  */
@@ -80,6 +82,7 @@ namespace Oracle {
  *    tuner.print();
  *  }
  *  Morpheus::finalize();
+ *
  *  return 0;
  * }
  * \endcode
