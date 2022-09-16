@@ -31,8 +31,67 @@
 namespace Morpheus {
 namespace Oracle {
 
+/**
+ * \addtogroup tuners Tuners
+ * \par Overview
+ * TODO
+ * \{
+ *
+ */
+
+/**
+ * @brief A run-first tuner that selects the best storage format after running
+ * the algorithm multiple times.
+ *
+ * \par Overview
+ * The RunFirstTuner is responsible for tuning for the best sparse matrix
+ * storage format by first running the operation multiple times.
+ *
+ * \par Example
+ * \code
+ * #include <Morpheus_Oracle.hpp>
+ *
+ * int main(){
+ *  Morpheus::initialize();
+ *  {
+ *    Morpheus::DynamicMatrix<double, Kokkos::HostSpace> A;
+ *    Morpheus::CsrMatrix<double, Kokkos::HostSpace> Acsr(4, 3, 6);
+ *
+ *    // initialize matrix entries
+ *    Acsr.row_offsets(0) = 0; Acsr.row_offsets(1) = 2; Acsr.row_offsets(2) = 2;
+ *    Acsr.row_offsets(3) = 3; Acsr.row_offsets(4) = 6;
+ *
+ *    Acsr.column_indices(0) = 0; Acsr.values(0) = 10;
+ *    Acsr.column_indices(1) = 2; Acsr.values(1) = 20;
+ *    Acsr.column_indices(2) = 2; Acsr.values(2) = 30;
+ *    Acsr.column_indices(3) = 0; Acsr.values(3) = 40;
+ *    Acsr.column_indices(4) = 1; Acsr.values(4) = 50;
+ *    Acsr.column_indices(5) = 2; Acsr.values(5) = 60;
+ *
+ *    A = Acsr;
+ *
+ *    // Run the tuner for 10 repetitions and print verbose messages.
+ *    Morpheus::Oracle::RunFirstTuner tuner(10, true);
+ *
+ *    // Tune A for the multiply operation
+ *    Morpheus::Oracle::tune_multiply<Kokkos::Serial>(A, tuner);
+ *
+ *    // Print the tuning report
+ *    tuner.print();
+ *  }
+ *  Morpheus::finalize();
+ *  return 0;
+ * }
+ * \endcode
+ */
 class RunFirstTuner {
  public:
+  /**
+   * @brief Construct a new RunFirstTuner object
+   *
+   * @param rep_limit Number of repetitions to run the tuner for.
+   * @param verbose  Whether to print verbose messages.
+   */
   RunFirstTuner(const size_t rep_limit = 10, const bool verbose = false)
       : timings_(Morpheus::NFORMATS, rep_limit, 0),
         max_timings_(Morpheus::NFORMATS, 0),
@@ -61,6 +120,10 @@ class RunFirstTuner {
     }
   }
 
+  /**
+   * @brief Advance the tuner by one step.
+   *
+   */
   void operator++() {
     if (repetition_count() < repetition_limit() - 1) {
       rep_count_++;
@@ -70,10 +133,27 @@ class RunFirstTuner {
     }
   }
 
+  /**
+   * @brief Provides the current format index the tuner optimizes for.
+   *
+   * @return size_t Current format index.
+   */
   size_t format_count() const { return format_count_; }
 
+  /**
+   * @brief Provides the total number of formats the tuner optimizes for.
+   *
+   * @return size_t Total number of formats.
+   */
   size_t nformats() const { return nformats_; }
 
+  /**
+   * @brief Provides the index of the optimum format selected by the tuner. Note
+   * that this is only possible after the tuning process is completed (i.e
+   * \p finished() returns true), otherwise a run-time exception is thrown.
+   *
+   * @return size_t Optimum format index.
+   */
   size_t format_id() const {
     if (format_count() >= nformats()) {
       return format_id_;
@@ -84,10 +164,26 @@ class RunFirstTuner {
     }
   }
 
+  /**
+   * @brief Provides the current repetition count the tuner runs for.
+   *
+   * @return size_t Current repetition count.
+   */
   size_t repetition_count() const { return rep_count_; }
 
+  /**
+   * @brief Provides the total number of repetitions the tuner runs for.
+   *
+   * @return size_t Total number of repetitions.
+   */
   size_t repetition_limit() const { return rep_limit_; }
 
+  /**
+   * @brief Checks if the tuner has completed the tuning process.
+   *
+   * @return true Tuning is completed.
+   * @return false Tuning still not completed.
+   */
   bool finished() {
     if (verbose_) {
       std::cout << std::setw(10) << format_count();
@@ -107,14 +203,34 @@ class RunFirstTuner {
     return completed;
   }
 
+  /**
+   * @brief Registers the run-time of the last step the tuner completed.
+   *
+   * @param runtime Run-time of the last step.
+   */
   void register_run(double runtime) {
     timings_(format_count(), repetition_count()) = runtime;
   }
 
+  /**
+   * @brief Whether to enable verbose messages by the tuner.
+   *
+   * @param verbose Boolean option for setting the verboseness of the tuner.
+   */
   void set_verbose(bool verbose = true) { verbose_ = verbose; }
 
+  /**
+   * @brief Checks if the tuner prints verbose messages.
+   *
+   * @return true Tuner prints verbose messages.
+   * @return false Tuner does not print verbose messages.
+   */
   bool is_verbose() { return verbose_; }
 
+  /**
+   * @brief Resets the state of the tuner to the initial state.
+   *
+   */
   void reset() {
     format_id_ = 0;
     rep_count_ = 0;
@@ -124,6 +240,12 @@ class RunFirstTuner {
     min_timings_.assign(nformats_, 0);
   }
 
+  /**
+   * @brief Prints the state of the tuner. Note that this is only possible
+   * during the first step of the tuner or after the tuning process is completed
+   * (i.e \p finished() returns true), otherwise a run-time exception is thrown.
+   *
+   */
   void print() {
     if ((repetition_count() == 0) && (format_count() == 0)) {
       std::cout << "Run-first Tuner configured with repetition limit "
@@ -157,7 +279,7 @@ class RunFirstTuner {
           "be done once tuning finishes.");
     }
   }
-
+  /*! \cond */
  private:
   void compute_best_format_id_() {
     // best format the one with the minimum average
@@ -216,8 +338,11 @@ class RunFirstTuner {
   size_t rep_limit_;
   size_t rep_count_;
   bool verbose_;
+  /*! \endcond */
 };
 
+/*! \}  // end of tuners group
+ */
 }  // namespace Oracle
 }  // namespace Morpheus
 
