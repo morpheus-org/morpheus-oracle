@@ -27,6 +27,36 @@
 #include <Morpheus_Oracle.hpp>
 #include <gtest/gtest.h>
 
-TEST(RunFirstTunerTest, DefaultConstruction) { EXPECT_EQ(1, 1); }
+TEST(RunFirstTunerTest, Construction) {
+  // Check the tuner constructs in the correct way
+  EXPECT_EQ(1, 1);
+}
+
+TEST(RunFirstTunerTest, Step) {
+  // Check the tuner advances first by each format and then by each repetition
+  EXPECT_EQ(1, 1);
+}
+
+TEST(RunFirstTunerTest, NotFinish) {
+  // Check the tuner does not finish prior to reaching the rep_limit and
+  // nformats.
+  EXPECT_EQ(1, 1);
+}
+
+TEST(RunFirstTunerTest, Finish) {
+  // Check upon completion the tuner computes the appropriate statistics and
+  // sets a storage format.
+  EXPECT_EQ(1, 1);
+}
+
+TEST(RunFirstTunerTest, RegisterRun) {
+  // Check if the tuner registers appropriately each format run
+  EXPECT_EQ(1, 1);
+}
+
+TEST(RunFirstTunerTest, Reset) {
+  // Check if the tuner resets to the correct state
+  EXPECT_EQ(1, 1);
+}
 
 #endif  // TEST_ORACLE_TEST_RUNFIRSTTUNER_HPP
