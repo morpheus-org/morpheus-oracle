@@ -111,30 +111,123 @@ TEST(RunFirstTunerTest, Construction) {
 }
 
 TEST(RunFirstTunerTest, Step) {
-  // Check the tuner advances first by each format and then by each repetition
-  EXPECT_EQ(1, 1);
-}
+  Morpheus::Oracle::RunFirstTuner tuner;
 
-TEST(RunFirstTunerTest, NotFinish) {
-  // Check the tuner does not finish prior to reaching the rep_limit and
-  // nformats.
-  EXPECT_EQ(1, 1);
+  for (size_t fmt = 0; fmt < tuner.nformats(); fmt++) {
+    for (size_t rep = 0; rep < tuner.repetition_limit(); rep++) {
+      EXPECT_EQ(tuner.format_count(), fmt);
+      EXPECT_EQ(tuner.repetition_count(), rep);
+      ++tuner;
+    }
+  }
+  EXPECT_EQ(tuner.format_count(), tuner.nformats());
+  EXPECT_EQ(tuner.repetition_count(), 0);
 }
 
 TEST(RunFirstTunerTest, Finish) {
-  // Check upon completion the tuner computes the appropriate statistics and
-  // sets a storage format.
-  EXPECT_EQ(1, 1);
+  Morpheus::Oracle::RunFirstTuner tuner;
+
+  for (size_t fmt = 0; fmt < tuner.nformats(); fmt++) {
+    for (size_t rep = 0; rep < tuner.repetition_limit(); rep++) {
+      EXPECT_FALSE(tuner.finished());
+      ++tuner;
+    }
+  }
+  EXPECT_TRUE(tuner.finished());
+  EXPECT_NE(tuner.format_id(),
+            Morpheus::Oracle::RunFirstTuner::INVALID_FORMAT_STATE);
 }
 
 TEST(RunFirstTunerTest, RegisterRun) {
-  // Check if the tuner registers appropriately each format run
-  EXPECT_EQ(1, 1);
+  Morpheus::Oracle::RunFirstTuner tuner;
+
+  for (size_t fmt = 0; fmt < tuner.nformats(); fmt++) {
+    for (size_t rep = 0; rep < tuner.repetition_limit(); rep++) {
+      double rt = tuner.repetition_count() + tuner.format_count();
+      tuner.register_run(rt);
+      ++tuner;
+    }
+  }
+
+  for (size_t fmt = 0; fmt < tuner.nformats(); fmt++) {
+    for (size_t rep = 0; rep < tuner.repetition_limit(); rep++) {
+      EXPECT_EQ(tuner.timings()(fmt, rep), rep + fmt);
+    }
+  }
+}
+
+TEST(RunFirstTunerTest, FinishStats) {
+  Morpheus::Oracle::RunFirstTuner tuner;
+
+  while (!tuner.finished()) {
+    double rt = tuner.repetition_count() + tuner.format_count();
+    tuner.register_run(rt);
+    ++tuner;
+  }
+
+  // Get repetition sum to be used in figuring out the average timings
+  double repsum = 0;
+  for (size_t i = 0; i < tuner.repetition_limit(); i++) {
+    repsum += i;
+  }
+
+  for (size_t fmt = 0; fmt < tuner.nformats(); fmt++) {
+    EXPECT_EQ(tuner.min_timings()(fmt), fmt);
+    EXPECT_EQ(tuner.max_timings()(fmt), (tuner.repetition_limit() - 1) + fmt);
+    EXPECT_EQ(
+        tuner.avg_timings()(fmt),
+        (repsum + (tuner.repetition_limit() * fmt)) / tuner.repetition_limit());
+  }
 }
 
 TEST(RunFirstTunerTest, Reset) {
-  // Check if the tuner resets to the correct state
-  EXPECT_EQ(1, 1);
+  const int reps     = 5;
+  const int nfmts    = Morpheus::NFORMATS;
+  const bool verbose = false;
+
+  Morpheus::Oracle::RunFirstTuner tuner(reps, verbose);
+
+  while (!tuner.finished()) {
+    double rt = tuner.repetition_count() + tuner.format_count();
+    tuner.register_run(rt);
+    ++tuner;
+  }
+
+  tuner.reset();
+
+  // Check timings shape
+  EXPECT_EQ(tuner.timings().nrows(), nfmts);
+  EXPECT_EQ(tuner.timings().ncols(), reps);
+  // Check timings values
+  for (auto i = 0; i < tuner.timings().nrows(); i++) {
+    for (auto j = 0; j < tuner.timings().ncols(); j++) {
+      EXPECT_EQ(tuner.timings()(i, j), 0);
+    }
+  }
+
+  // Check maximum timings shape
+  EXPECT_EQ(tuner.max_timings().size(), nfmts);
+  // Check minimum timings shape
+  EXPECT_EQ(tuner.min_timings().size(), nfmts);
+  // Check average timings shape
+  EXPECT_EQ(tuner.avg_timings().size(), nfmts);
+  // Check values of each timing vector
+  for (auto i = 0; i < nfmts; i++) {
+    EXPECT_EQ(tuner.max_timings()(i), 0);
+    EXPECT_EQ(tuner.min_timings()(i), 0);
+    EXPECT_EQ(tuner.avg_timings()(i), 0);
+  }
+
+  EXPECT_EQ(tuner.format_id(),
+            Morpheus::Oracle::RunFirstTuner::INVALID_FORMAT_STATE);
+
+  EXPECT_EQ(tuner.format_count(), 0);
+  EXPECT_EQ(tuner.nformats(), nfmts);
+
+  EXPECT_EQ(tuner.repetition_count(), 0);
+  EXPECT_EQ(tuner.repetition_limit(), reps);
+
+  EXPECT_EQ(tuner.is_verbose(), verbose);
 }
 
 #endif  // TEST_ORACLE_TEST_RUNFIRSTTUNER_HPP

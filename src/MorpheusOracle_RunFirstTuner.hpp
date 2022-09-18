@@ -186,8 +186,10 @@ class RunFirstTuner {
    *
    */
   void reset() {
-    format_id_ = INVALID_FORMAT_STATE;
-    rep_count_ = 0;
+    format_id_    = INVALID_FORMAT_STATE;
+    format_count_ = 0;
+    rep_count_    = 0;
+    verbose_      = false;
     timings_.assign(nformats_, rep_limit_, 0);
     max_timings_.assign(nformats_, 0);
     avg_timings_.assign(nformats_, 0);
@@ -333,7 +335,8 @@ class RunFirstTuner {
   void compute_best_format_id_() {
     // best format the one with the minimum average
     double mint = avg_timings_(0);
-    for (size_t i = 0; i < nformats_; i++) {
+    format_id_  = 0;
+    for (size_t i = 0; i < nformats(); i++) {
       if (avg_timings_(i) < mint) {
         mint       = avg_timings_(i);
         format_id_ = i;
