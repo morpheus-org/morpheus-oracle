@@ -98,7 +98,7 @@ class RunFirstTuner {
 
   /*! Enum value specifying the state of the tuner when the optimum format has
    * not been yet selected*/
-  enum { INVALID_FORMAT_STATE = -1 };
+  enum format_state { INVALID_FORMAT_STATE = -1 };
 
   /**
    * @brief Construct a new RunFirstTuner object
