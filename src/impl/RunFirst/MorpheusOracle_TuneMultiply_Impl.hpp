@@ -50,7 +50,7 @@ void tune_multiply(
   auto mat_h = Morpheus::create_mirror_container(mat);
   Morpheus::copy(mat, mat_h);
 
-  size_t current_format = -1;
+  size_t current_format = Morpheus::Oracle::RunFirstTuner::INVALID_FORMAT_STATE;
   while (!tuner.finished()) {
     if (current_format != tuner.format_count()) {
       // Convert only when we start a new format_count

@@ -30,9 +30,9 @@
 namespace Morpheus {
 namespace Oracle {
 
-template <typename ExecSpace, typename Matrix, typename Tuner>
-void tune_multiply(Matrix& mat, Tuner& tuner) {
-  static_assert(Morpheus::is_dynamic_matrix_container<Matrix>::value,
+template <typename ExecSpace, typename DynamicMatrix, typename Tuner>
+void tune_multiply(DynamicMatrix& mat, Tuner& tuner) {
+  static_assert(Morpheus::is_dynamic_matrix_container<DynamicMatrix>::value,
                 "Input Matrix for the tuner must be a valid DynamicMatrix.");
   static_assert(Morpheus::is_execution_space<ExecSpace>::value,
                 "Input Execution Space must be a valid Execution Space.");
