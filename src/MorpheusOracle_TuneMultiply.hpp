@@ -30,6 +30,17 @@
 namespace Morpheus {
 namespace Oracle {
 
+/**
+ * @brief Optimizes the multiply operation in \p ExecSpace by selecting the
+ * optimum format for the given matrix. The tuning process depends on the tuner
+ * provided.
+ *
+ * @tparam ExecSpace Execution Space the operation runs in.
+ * @tparam DynamicMatrix The matrix type for which we are tuning for.
+ * @tparam Tuner The tuner type to be used for tuning.
+ * @param mat Dynamic matrix
+ * @param tuner One of the supported tuners.
+ */
 template <typename ExecSpace, typename DynamicMatrix, typename Tuner>
 void tune_multiply(DynamicMatrix& mat, Tuner& tuner) {
   static_assert(Morpheus::is_dynamic_matrix_container<DynamicMatrix>::value,
