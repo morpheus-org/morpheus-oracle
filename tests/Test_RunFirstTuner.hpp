@@ -26,9 +26,88 @@
 
 #include <Morpheus_Oracle.hpp>
 
+TEST(RunFirstTunerTest, DefaultConstruction) {
+  const int reps     = 10;
+  const int nfmts    = Morpheus::NFORMATS;
+  const bool verbose = false;
+
+  Morpheus::Oracle::RunFirstTuner tuner;
+
+  // Check timings shape
+  EXPECT_EQ(tuner.timings().nrows(), nfmts);
+  EXPECT_EQ(tuner.timings().ncols(), reps);
+  // Check timings values
+  for (auto i = 0; i < tuner.timings().nrows(); i++) {
+    for (auto j = 0; j < tuner.timings().ncols(); j++) {
+      EXPECT_EQ(tuner.timings()(i, j), 0);
+    }
+  }
+
+  // Check maximum timings shape
+  EXPECT_EQ(tuner.max_timings().size(), nfmts);
+  // Check minimum timings shape
+  EXPECT_EQ(tuner.min_timings().size(), nfmts);
+  // Check average timings shape
+  EXPECT_EQ(tuner.avg_timings().size(), nfmts);
+  // Check values of each timing vector
+  for (auto i = 0; i < nfmts; i++) {
+    EXPECT_EQ(tuner.max_timings()(i), 0);
+    EXPECT_EQ(tuner.min_timings()(i), 0);
+    EXPECT_EQ(tuner.avg_timings()(i), 0);
+  }
+
+  EXPECT_EQ(tuner.format_id(),
+            Morpheus::Oracle::RunFirstTuner::INVALID_FORMAT_STATE);
+
+  EXPECT_EQ(tuner.format_count(), 0);
+  EXPECT_EQ(tuner.nformats(), nfmts);
+
+  EXPECT_EQ(tuner.repetition_count(), 0);
+  EXPECT_EQ(tuner.repetition_limit(), reps);
+
+  EXPECT_EQ(tuner.is_verbose(), verbose);
+}
+
 TEST(RunFirstTunerTest, Construction) {
-  // Check the tuner constructs in the correct way
-  EXPECT_EQ(1, 1);
+  const int reps     = 5;
+  const int nfmts    = Morpheus::NFORMATS;
+  const bool verbose = true;
+
+  Morpheus::Oracle::RunFirstTuner tuner(reps, verbose);
+
+  // Check timings shape
+  EXPECT_EQ(tuner.timings().nrows(), nfmts);
+  EXPECT_EQ(tuner.timings().ncols(), reps);
+  // Check timings values
+  for (auto i = 0; i < tuner.timings().nrows(); i++) {
+    for (auto j = 0; j < tuner.timings().ncols(); j++) {
+      EXPECT_EQ(tuner.timings()(i, j), 0);
+    }
+  }
+
+  // Check maximum timings shape
+  EXPECT_EQ(tuner.max_timings().size(), nfmts);
+  // Check minimum timings shape
+  EXPECT_EQ(tuner.min_timings().size(), nfmts);
+  // Check average timings shape
+  EXPECT_EQ(tuner.avg_timings().size(), nfmts);
+  // Check values of each timing vector
+  for (auto i = 0; i < nfmts; i++) {
+    EXPECT_EQ(tuner.max_timings()(i), 0);
+    EXPECT_EQ(tuner.min_timings()(i), 0);
+    EXPECT_EQ(tuner.avg_timings()(i), 0);
+  }
+
+  EXPECT_EQ(tuner.format_id(),
+            Morpheus::Oracle::RunFirstTuner::INVALID_FORMAT_STATE);
+
+  EXPECT_EQ(tuner.format_count(), 0);
+  EXPECT_EQ(tuner.nformats(), nfmts);
+
+  EXPECT_EQ(tuner.repetition_count(), 0);
+  EXPECT_EQ(tuner.repetition_limit(), reps);
+
+  EXPECT_EQ(tuner.is_verbose(), verbose);
 }
 
 TEST(RunFirstTunerTest, Step) {

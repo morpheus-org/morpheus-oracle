@@ -91,6 +91,15 @@ namespace Oracle {
  */
 class RunFirstTuner {
  public:
+  /*! A two-dimensional vector of doubles */
+  using vec2d = Morpheus::DenseMatrix<double, int, Kokkos::HostSpace>;
+  /*! A one-dimensional vector of doubles */
+  using vec = Morpheus::DenseVector<double, Kokkos::HostSpace>;
+
+  /*! Enum value specifying the state of the tuner when the optimum format has
+   * not been yet selected*/
+  enum { INVALID_FORMAT_STATE = -1 };
+
   /**
    * @brief Construct a new RunFirstTuner object
    *
@@ -102,7 +111,7 @@ class RunFirstTuner {
         max_timings_(Morpheus::NFORMATS, 0),
         avg_timings_(Morpheus::NFORMATS, 0),
         min_timings_(Morpheus::NFORMATS, 0),
-        format_id_(-1),
+        format_id_(INVALID_FORMAT_STATE),
         format_count_(0),
         nformats_(Morpheus::NFORMATS),
         rep_limit_(rep_limit),
@@ -139,49 +148,13 @@ class RunFirstTuner {
   }
 
   /**
-   * @brief Provides the current format index the tuner optimizes for.
+   * @brief Registers the run-time of the last step the tuner completed.
    *
-   * @return size_t Current format index.
+   * @param runtime Run-time of the last step.
    */
-  size_t format_count() const { return format_count_; }
-
-  /**
-   * @brief Provides the total number of formats the tuner optimizes for.
-   *
-   * @return size_t Total number of formats.
-   */
-  size_t nformats() const { return nformats_; }
-
-  /**
-   * @brief Provides the index of the optimum format selected by the tuner. Note
-   * that this is only possible after the tuning process is completed (i.e
-   * \p finished() returns true), otherwise a run-time exception is thrown.
-   *
-   * @return size_t Optimum format index.
-   */
-  size_t format_id() const {
-    if (format_count() >= nformats()) {
-      return format_id_;
-    } else {
-      throw std::runtime_error(
-          "Tuner is in inconsistent state. Requesting the optimal format_id "
-          "can be done once tuning finishes.");
-    }
+  void register_run(double runtime) {
+    timings_(format_count(), repetition_count()) = runtime;
   }
-
-  /**
-   * @brief Provides the current repetition count the tuner runs for.
-   *
-   * @return size_t Current repetition count.
-   */
-  size_t repetition_count() const { return rep_count_; }
-
-  /**
-   * @brief Provides the total number of repetitions the tuner runs for.
-   *
-   * @return size_t Total number of repetitions.
-   */
-  size_t repetition_limit() const { return rep_limit_; }
 
   /**
    * @brief Checks if the tuner has completed the tuning process.
@@ -209,35 +182,11 @@ class RunFirstTuner {
   }
 
   /**
-   * @brief Registers the run-time of the last step the tuner completed.
-   *
-   * @param runtime Run-time of the last step.
-   */
-  void register_run(double runtime) {
-    timings_(format_count(), repetition_count()) = runtime;
-  }
-
-  /**
-   * @brief Whether to enable verbose messages by the tuner.
-   *
-   * @param verbose Boolean option for setting the verboseness of the tuner.
-   */
-  void set_verbose(bool verbose = true) { verbose_ = verbose; }
-
-  /**
-   * @brief Checks if the tuner prints verbose messages.
-   *
-   * @return true Tuner prints verbose messages.
-   * @return false Tuner does not print verbose messages.
-   */
-  bool is_verbose() { return verbose_; }
-
-  /**
    * @brief Resets the state of the tuner to the initial state.
    *
    */
   void reset() {
-    format_id_ = -1;
+    format_id_ = INVALID_FORMAT_STATE;
     rep_count_ = 0;
     timings_.assign(nformats_, rep_limit_, 0);
     max_timings_.assign(nformats_, 0);
@@ -284,6 +233,101 @@ class RunFirstTuner {
           "be done once tuning finishes.");
     }
   }
+
+  /**
+   * @brief Provides a two-dimensional vector that contains the timings obtained
+   * at each step of the tuner and for each format.
+   *
+   * @return vec2d& A two-dimensional vector containing timings of each format.
+   */
+  vec2d& timings() { return timings_; }
+
+  /**
+   * @brief Provides a one-dimensional vector that contains the maximum timings
+   * for each format.
+   *
+   * @return vec& A one-dimensional vector containing max timings of each
+   * format.
+   */
+  vec& max_timings() { return max_timings_; }
+
+  /**
+   * @brief Provides a one-dimensional vector that contains the minimum timings
+   * for each format.
+   *
+   * @return vec& A one-dimensional vector containing minimum timings of each
+   * format.
+   */
+  vec& min_timings() { return min_timings_; }
+
+  /**
+   * @brief Provides a one-dimensional vector that contains the average timings
+   * for each format.
+   *
+   * @return vec& A one-dimensional vector containing average timings of each
+   * format.
+   */
+  vec& avg_timings() { return avg_timings_; }
+
+  /**
+   * @brief Provides the current format index the tuner optimizes for.
+   *
+   * @return size_t Current format index.
+   */
+  size_t format_count() const { return format_count_; }
+
+  /**
+   * @brief Provides the total number of formats the tuner optimizes for.
+   *
+   * @return size_t Total number of formats.
+   */
+  size_t nformats() const { return nformats_; }
+
+  /**
+   * @brief Provides the index of the optimum format selected by the tuner. Note
+   * that until the tuner finishes the tuning process, the format ID is set to
+   * \p INVALID_FORMAT_STATE.
+   *
+   * @return size_t Optimum format index.
+   */
+  size_t format_id() const { return format_id_; }
+
+  /**
+   * @brief Provides the current repetition count the tuner runs for.
+   *
+   * @return size_t Current repetition count.
+   */
+  size_t repetition_count() const { return rep_count_; }
+
+  /**
+   * @brief Provides the total number of repetitions the tuner runs for.
+   *
+   * @return size_t Total number of repetitions.
+   */
+  size_t repetition_limit() const { return rep_limit_; }
+
+  /**
+   * @brief Checks if the tuner prints verbose messages.
+   *
+   * @return true Tuner prints verbose messages.
+   * @return false Tuner does not print verbose messages.
+   */
+  bool is_verbose() { return verbose_; }
+
+  /**
+   * @brief Whether to enable verbose messages by the tuner.
+   *
+   * @param verbose Boolean option for setting the verboseness of the tuner.
+   */
+  void set_verbose(bool verbose = true) { verbose_ = verbose; }
+
+  /**
+   * @brief Set the limit of repetitions the tuner will carry out.
+   *
+   * @param rep_limit Number of repetitions.
+   */
+  void set_repetition_limit(int rep_limit = 10) { rep_limit_ = rep_limit; }
+
   /*! \cond */
  private:
   void compute_best_format_id_() {
@@ -331,8 +375,6 @@ class RunFirstTuner {
     }
   }
 
-  using vec2d = Morpheus::DenseMatrix<double, int, Kokkos::HostSpace>;
-  using vec   = Morpheus::DenseVector<double, Kokkos::HostSpace>;
   vec2d timings_;
   vec max_timings_;
   vec avg_timings_;
