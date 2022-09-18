@@ -23,34 +23,56 @@
 
 #include <Morpheus_Oracle.hpp>
 
-int main() {
+#if defined(EXAMPLE_ENABLE_SERIAL)
+using Space = Kokkos::Serial;
+#elif defined(EXAMPLE_ENABLE_OPENMP)
+using Space = Kokkos::OpenMP;
+#elif defined(EXAMPLE_ENABLE_CUDA)
+using Space = Kokkos::Cuda;
+#elif defined(EXAMPLE_ENABLE_HIP)
+using Space = Kokkos::HIP;
+#endif
+
+using memory_space  = typename Space::memory_space;
+using DynamicMatrix = Morpheus::DynamicMatrix<double, memory_space>;
+using CooMatrix     = Morpheus::CooMatrix<double, memory_space>;
+
+int main(int argc, char* argv[]) {
   Morpheus::initialize();
   {
-    Morpheus::Oracle::RunFirstTuner tuner(10, true);
-    Morpheus::DynamicMatrix<double, Kokkos::HostSpace> A;
-    Morpheus::CsrMatrix<double, Kokkos::HostSpace> Acsr(4, 3, 6);
+    if (argc != 4) {
+      std::stringstream rt_error_msg;
+      rt_error_msg << "Benchmark requires 3 runtime input arguments:\n";
+      rt_error_msg << "\tfilename   : Matrix Market file to be used.\n";
+      rt_error_msg << "\treps : How many times to tuner will run.\n";
+      rt_error_msg << "\tVerbosity  : Whether to enable verbose messages.\n";
+      rt_error_msg << " Received " << argc - 1 << " arguments !\n ";
 
-    // initialize matrix entries
-    Acsr.row_offsets(0) = 0;
-    Acsr.row_offsets(1) = 2;
-    Acsr.row_offsets(2) = 2;
-    Acsr.row_offsets(3) = 3;
-    Acsr.row_offsets(4) = 6;
+      std::cout << rt_error_msg.str() << std::endl;
+      exit(-1);
+    }
 
-    Acsr.column_indices(0) = 0;
-    Acsr.values(0)         = 10;
-    Acsr.column_indices(1) = 2;
-    Acsr.values(1)         = 20;
-    Acsr.column_indices(2) = 2;
-    Acsr.values(2)         = 30;
-    Acsr.column_indices(3) = 0;
-    Acsr.values(3)         = 40;
-    Acsr.column_indices(4) = 1;
-    Acsr.values(4)         = 50;
-    Acsr.column_indices(5) = 2;
-    Acsr.values(5)         = 60;
+    std::string filename = argv[1];
+    size_t reps          = atoi(argv[2]);
+    bool verbose         = atoi(argv[3]) ? true : false;
 
-    A = Acsr;
+    std::cout << "\nRunning run_first_tuner example with:\n";
+    std::cout << "\tFilename    : " << filename << "\n";
+    std::cout << "\tVerbosity   : " << (verbose ? "ON" : "OFF") << "\n\n";
+
+    typename CooMatrix::HostMirror Acoo_h;
+    try {
+      Morpheus::IO::read_matrix_market_file(Acoo_h, filename);
+    } catch (Morpheus::NotImplementedException& e) {
+      std::cerr << "Exception Raised:: " << e.what() << std::endl;
+      exit(0);
+    }
+
+    typename DynamicMatrix::HostMirror A_h = Acoo_h;
+    DynamicMatrix A = Morpheus::create_mirror<Space>(A_h);
+    Morpheus::copy(A_h, A);
+
+    Morpheus::Oracle::RunFirstTuner tuner(reps, verbose);
 
     Morpheus::Oracle::tune_multiply<Kokkos::Serial>(A, tuner);
     tuner.print();
