@@ -25,7 +25,6 @@
 #define TEST_ORACLE_TEST_RUNFIRSTTUNER_HPP
 
 #include <Morpheus_Oracle.hpp>
-#include <gtest/gtest.h>
 
 TEST(RunFirstTunerTest, Construction) {
   // Check the tuner constructs in the correct way
