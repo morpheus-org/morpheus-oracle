@@ -47,21 +47,25 @@ void tune_multiply(
 
   vector x(mat.ncols(), value_type(2)), y(mat.nrows(), value_type(0));
 
-  auto mat_h = Morpheus::create_mirror_container(mat);
-  Morpheus::copy(mat, mat_h);
+  auto mat_mirror = Morpheus::create_mirror<typename Matrix::execution_space>(mat);
+  Morpheus::copy(mat, mat_mirror);
+
+  auto mat_mirror_h = Morpheus::create_mirror_container(mat_mirror);
+  Morpheus::copy(mat_mirror, mat_mirror_h);
 
   size_t current_format = Morpheus::Oracle::RunFirstTuner::INVALID_FORMAT_STATE;
   while (!tuner.finished()) {
     if (current_format != tuner.format_count()) {
       // Convert only when we start a new format_count
-      Morpheus::convert<Kokkos::Serial>(mat_h, tuner.format_count());
-      mat.resize(mat_h);
-      Morpheus::copy(mat_h, mat);
+      Morpheus::convert<Kokkos::Serial>(mat_mirror_h, tuner.format_count());
+      mat_mirror.activate(mat_mirror_h.active_index());
+      mat_mirror.resize(mat_mirror_h);
+      Morpheus::copy(mat_mirror_h, mat_mirror);
       current_format = tuner.format_count();
     }
 
     auto start = std::chrono::steady_clock::now();
-    Morpheus::multiply<ExecSpace>(mat, x, y, true);
+    Morpheus::multiply<ExecSpace>(mat_mirror, x, y, true);
     auto end = std::chrono::steady_clock::now();
 
     double runtime = std::chrono::duration_cast<ns>(end - start).count() * 1e-9;
