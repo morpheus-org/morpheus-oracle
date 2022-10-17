@@ -1,0 +1,11 @@
+#if !defined(MORPHEUSORACLE_MACROS_HPP) || defined(MORPHEUS_ORACLE_CONFIG_H)
+#error \
+    "Do not include MorpheusOracle_config.hpp directly; include MoprheusOracle_Macros.hpp instead."
+#else
+#define MORPHEUSORACLE_CONFIG_HPP
+#endif
+
+// clang-format off
+/* Define the current version of Morpheus Oracle */
+#cmakedefine MORPHEUSORACLE_VERSION @MORPHEUSORACLE_VERSION@
+// clang-format on

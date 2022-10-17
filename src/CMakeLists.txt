@@ -1,34 +1,10 @@
-morpheusoracle_configure_file(MorpheusOracle_config.h)
+morpheusoracle_configure_file(MorpheusOracle_config.hpp)
 
 morpheusoracle_include_directories(${CMAKE_CURRENT_BINARY_DIR})
 morpheusoracle_include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 
 set(MORPHEUS_ORACLE_HEADER_INSTALL_DIR ${MORPHEUS_HEADER_INSTALL_DIR}/oracle)
 set(MORPHEUSORACLE_HEADER_INSTALL_DIR ${MORPHEUS_ORACLE_HEADER_INSTALL_DIR})
-
-set(MORPHEUS_ORACLE_INCLUDE_DIRS ${CMAKE_CURRENT_BINARY_DIR})
-list(APPEND MORPHEUS_ORACLE_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR})
-
-# I don't want the complexity of sometimes interface/sometimes not Just
-# minimally force an empty dummy file
-set(SOURCES dummy.cpp)
-
-# -----------------------------------------------------------------------------
-
-list(APPEND MORPHEUS_ORACLE_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR})
-list(APPEND MORPHEUS_ORACLE_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/impl)
-list(APPEND MORPHEUS_ORACLE_INCLUDE_DIRS
-     ${CMAKE_CURRENT_SOURCE_DIR}/impl/RunFirst)
-
-foreach(DIR ${MORPHEUS_ORACLE_INCLUDE_DIRS})
-  morpheusoracle_include_directories(${DIR})
-  append_glob(HEADERS ${DIR}/*.hpp)
-endforeach()
-
-list(APPEND HEADERS ${CMAKE_CURRENT_BINARY_DIR}/${PACKAGE_NAME}_config.h)
-
-morpheusoracle_add_library(morpheus-oracle HEADERS ${HEADERS} SOURCES
-                           ${SOURCES})
 
 install(
   DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/"
@@ -37,10 +13,45 @@ install(
   PATTERN "*.hpp"
   PATTERN "*.h")
 
-add_library(Morpheus::morpheus-oracle ALIAS morpheus-oracle)
+set(MORPHEUS_ORACLE_SOURCES)
+append_glob(MORPHEUS_ORACLE_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/*.cpp)
+
+set(MORPHEUS_ORACLE_HEADERS)
+append_glob(MORPHEUS_ORACLE_HEADERS ${CMAKE_CURRENT_SOURCE_DIR}/*.hpp)
+append_glob(MORPHEUS_ORACLE_HEADERS ${CMAKE_CURRENT_SOURCE_DIR}/impl/*.hpp)
+
+foreach(Tuner RunFirst)
+  append_glob(MORPHEUS_ORACLE_SOURCES
+              ${CMAKE_CURRENT_SOURCE_DIR}/impl/${Tuner}/*.cpp)
+  append_glob(MORPHEUS_ORACLE_HEADERS
+              ${CMAKE_CURRENT_SOURCE_DIR}/impl/${Tuner}/*.hpp)
+endforeach()
+
+append_glob(MORPHEUS_ORACLE_HEADERS
+            ${CMAKE_CURRENT_BINARY_DIR}/MorpheusOracle_config.hpp)
+
+foreach(HEADER ${MORPHEUS_ORACLE_HEADERS})
+  get_filename_component(dirname ${HEADER} DIRECTORY)
+  morpheusoracle_include_directories(${dirname})
+endforeach()
+
+morpheusoracle_add_library(morpheus-oracle HEADERS ${MORPHEUS_ORACLE_HEADERS}
+                           SOURCES ${MORPHEUS_ORACLE_SOURCES})
+
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/MorpheusOracle_config.hpp
+        DESTINATION ${MORPHEUS_ORACLE_HEADER_INSTALL_DIR})
+
+morpheusoracle_lib_include_directories(
+  morpheus-oracle ${MORPHEUSORACLE_TOP_BUILD_DIR} ${CMAKE_CURRENT_BINARY_DIR}
+  ${CMAKE_CURRENT_SOURCE_DIR})
+
+# Link with Morpheus
 target_link_libraries(morpheus-oracle PUBLIC Morpheus::morpheus)
-foreach(DIR ${MORPHEUS_ORACLE_INCLUDE_DIRS})
-  target_include_directories(morpheus-oracle PUBLIC $<BUILD_INTERFACE:${DIR}>)
+
+foreach(HEADER ${MORPHEUS_ORACLE_HEADERS})
+  get_filename_component(dirname ${HEADER} DIRECTORY)
+  target_include_directories(morpheus-oracle
+                             PUBLIC $<BUILD_INTERFACE:${dirname}>)
 endforeach()
 target_include_directories(
   morpheus-oracle

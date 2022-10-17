@@ -71,6 +71,27 @@ function(MORPHEUSORACLE_INCLUDE_DIRECTORIES)
   include_directories(${INC_UNPARSED_ARGUMENTS})
 endfunction(MORPHEUSORACLE_INCLUDE_DIRECTORIES)
 
+function(MORPHEUSORACLE_LIB_TYPE LIB RET)
+  get_target_property(PROP ${LIB} TYPE)
+  if(${PROP} STREQUAL "INTERFACE_LIBRARY")
+    set(${RET}
+        "INTERFACE"
+        PARENT_SCOPE)
+  else()
+    set(${RET}
+        "PUBLIC"
+        PARENT_SCOPE)
+  endif()
+endfunction()
+
+function(MORPHEUSORACLE_LIB_INCLUDE_DIRECTORIES TARGET)
+  # append to a list for later
+  morpheusoracle_lib_type(${TARGET} INCTYPE)
+  foreach(DIR ${ARGN})
+    target_include_directories(${TARGET} ${INCTYPE} $<BUILD_INTERFACE:${DIR}>)
+  endforeach()
+endfunction(MORPHEUSORACLE_LIB_INCLUDE_DIRECTORIES)
+
 macro(MORPHEUSORACLE_ADD_TEST_DIRECTORIES)
   if(MORPHEUSORACLE_ENABLE_TESTS)
     foreach(TEST_DIR ${ARGN})

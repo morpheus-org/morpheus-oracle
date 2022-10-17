@@ -1,9 +1,0 @@
-#ifndef MORPHEUSORACLE_CONFIG_H
-#define MORPHEUSORACLE_CONFIG_H
-
-// clang-format off
-/* Define the current version of Morpheus Oracle */
-#cmakedefine MORPHEUSORACLE_VERSION @MORPHEUSORACLE_VERSION@
-// clang-format on
-
-#endif  // MORPHEUSORACLE_CONFIG_H

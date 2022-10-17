@@ -1,5 +1,5 @@
 /**
- * dummy.cpp
+ * MorpheusOracle_Macros.hpp
  *
  * EPCC, The University of Edinburgh
  *
@@ -21,13 +21,9 @@
  * limitations under the License.
  */
 
-namespace Morpheus {
-namespace Oracle {
-namespace AvoidCompilerWarnings {
-int dontComplain() {
-  // keep the compiler from complaining about emptiness
-  return 0;
-}
-}  // namespace AvoidCompilerWarnings
-}  // namespace Oracle
-}  // namespace Morpheus
+#ifndef MORPHEUSORACLE_MACROS_HPP
+#define MORPHEUSORACLE_MACROS_HPP
+
+#include <MorpheusOracle_config.hpp>
+
+#endif  // MORPHEUSORACLE_MACROS_HPP
