@@ -8,9 +8,9 @@ cmake_minimum_required(VERSION 3.16 FATAL_ERROR)
 if(NOT DEFINED ${PROJECT_NAME})
   project(MorpheusOracle CXX)
 endif()
-set(MorpheusOracle_VERSION_MAJOR 0)
-set(MorpheusOracle_VERSION_MINOR 1)
-set(MorpheusOracle_VERSION_PATCH 0)
+set(MorpheusOracle_VERSION_MAJOR 00)
+set(MorpheusOracle_VERSION_MINOR 01)
+set(MorpheusOracle_VERSION_PATCH 00)
 set(MorpheusOracle_VERSION
     "${MorpheusOracle_VERSION_MAJOR}.${MorpheusOracle_VERSION_MINOR}.${MorpheusOracle_VERSION_PATCH}"
 )

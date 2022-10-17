@@ -26,6 +26,7 @@
 
 #include <Morpheus_Core.hpp>
 
+#include <MorpheusOracle_Macros.hpp>
 #include <MorpheusOracle_RunFirstTuner.hpp>
 #include <MorpheusOracle_TuneMultiply.hpp>
 #include <MorpheusOracle_TypeTraits.hpp>

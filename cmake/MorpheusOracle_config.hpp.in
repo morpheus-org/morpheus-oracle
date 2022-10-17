@@ -6,6 +6,14 @@
 #endif
 
 // clang-format off
+
 /* Define the current version of Morpheus Oracle */
+// MORPHEUSORACLE_VERSION % 100 is the patch level
+// MORPHEUSORACLE_VERSION / 100 % 100 is the minor version
+// MORPHEUSORACLE_VERSION / 10000 is the major version
 #cmakedefine MORPHEUSORACLE_VERSION @MORPHEUSORACLE_VERSION@
+#cmakedefine MorpheusOracle_VERSION_MAJOR  @MorpheusOracle_VERSION_MAJOR@
+#cmakedefine MorpheusOracle_VERSION_MINOR  @MorpheusOracle_VERSION_MINOR@
+#cmakedefine MorpheusOracle_VERSION_PATCH  @MorpheusOracle_VERSION_PATCH@
+
 // clang-format on
