@@ -95,10 +95,11 @@ jobs:
           path: morpheus
 
       - name: Installing Morpheus
+        working-directory: morpheus
         run: |
           mkdir morpheus-build
           cd morpheus-build
-          echo $(pwd)
+          
           cmake .. -DCMAKE_CXX_COMPILER=${{ env.cxx_compiler }} \
                 -DCMAKE_INSTALL_PREFIX=/usr/morpheus-install \
                 -DCMAKE_BUILD_TYPE=${{ matrix.cmake_build_type }} \
