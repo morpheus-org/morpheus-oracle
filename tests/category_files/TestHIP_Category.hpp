@@ -28,7 +28,9 @@
 
 #define TEST_CATEGORY hip
 #define TEST_CATEGORY_NUMBER 7
-#define TEST_EXECSPACE Kokkos::Experimental::HIP
+#define TEST_EXECSPACE Kokkos::HIP
+#define TEST_CUSTOM_EXECSPACE Morpheus::Custom::HIP
+#define TEST_GENERIC_EXECSPACE Morpheus::Generic::HIP
 #define TEST_CATEGORY_FIXTURE(name) hip_##name
 
 #endif  // MORPHEUS_ORACLE_TEST_HIP_HPP

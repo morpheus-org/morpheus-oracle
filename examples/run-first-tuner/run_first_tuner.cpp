@@ -24,18 +24,17 @@
 #include <Morpheus_Oracle.hpp>
 
 #if defined(EXAMPLE_ENABLE_SERIAL)
-using Space = Kokkos::Serial;
+using Space = Morpheus::Serial;
 #elif defined(EXAMPLE_ENABLE_OPENMP)
-using Space = Kokkos::OpenMP;
+using Space = Morpheus::OpenMP;
 #elif defined(EXAMPLE_ENABLE_CUDA)
-using Space = Kokkos::Cuda;
+using Space = Morpheus::Cuda;
 #elif defined(EXAMPLE_ENABLE_HIP)
-using Space = Kokkos::HIP;
+using Space = Morpheus::HIP;
 #endif
 
-using memory_space  = typename Space::memory_space;
-using DynamicMatrix = Morpheus::DynamicMatrix<double, memory_space>;
-using CooMatrix     = Morpheus::CooMatrix<double, memory_space>;
+using backend       = typename Space::backend;
+using DynamicMatrix = Morpheus::DynamicMatrix<double, backend>;
 
 int main(int argc, char* argv[]) {
   Morpheus::initialize();
@@ -60,21 +59,20 @@ int main(int argc, char* argv[]) {
     std::cout << "\tFilename    : " << filename << "\n";
     std::cout << "\tVerbosity   : " << (verbose ? "ON" : "OFF") << "\n\n";
 
-    typename CooMatrix::HostMirror Acoo_h;
+    typename DynamicMatrix::HostMirror Ah;
     try {
-      Morpheus::IO::read_matrix_market_file(Acoo_h, filename);
+      Morpheus::IO::read_matrix_market_file(Ah, filename);
     } catch (Morpheus::NotImplementedException& e) {
       std::cerr << "Exception Raised:: " << e.what() << std::endl;
       exit(0);
     }
 
-    typename DynamicMatrix::HostMirror A_h = Acoo_h;
-    DynamicMatrix A = Morpheus::create_mirror<Space>(A_h);
-    Morpheus::copy(A_h, A);
+    DynamicMatrix A = Morpheus::create_mirror<Space>(Ah);
+    Morpheus::copy(Ah, A);
 
     Morpheus::Oracle::RunFirstTuner tuner(reps, verbose);
 
-    Morpheus::Oracle::tune_multiply<Kokkos::Serial>(A, tuner);
+    Morpheus::Oracle::tune_multiply<Morpheus::Serial>(A, tuner);
     tuner.print();
   }
   Morpheus::finalize();

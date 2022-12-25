@@ -37,8 +37,8 @@ TEST(RunFirstTunerTest, DefaultConstruction) {
   EXPECT_EQ(tuner.timings().nrows(), nfmts);
   EXPECT_EQ(tuner.timings().ncols(), reps);
   // Check timings values
-  for (auto i = 0; i < tuner.timings().nrows(); i++) {
-    for (auto j = 0; j < tuner.timings().ncols(); j++) {
+  for (size_t i = 0; i < tuner.timings().nrows(); i++) {
+    for (size_t j = 0; j < tuner.timings().ncols(); j++) {
       EXPECT_EQ(tuner.timings()(i, j), 0);
     }
   }
@@ -79,8 +79,8 @@ TEST(RunFirstTunerTest, Construction) {
   EXPECT_EQ(tuner.timings().nrows(), nfmts);
   EXPECT_EQ(tuner.timings().ncols(), reps);
   // Check timings values
-  for (auto i = 0; i < tuner.timings().nrows(); i++) {
-    for (auto j = 0; j < tuner.timings().ncols(); j++) {
+  for (size_t i = 0; i < tuner.timings().nrows(); i++) {
+    for (size_t j = 0; j < tuner.timings().ncols(); j++) {
       EXPECT_EQ(tuner.timings()(i, j), 0);
     }
   }
@@ -199,8 +199,8 @@ TEST(RunFirstTunerTest, Reset) {
   EXPECT_EQ(tuner.timings().nrows(), nfmts);
   EXPECT_EQ(tuner.timings().ncols(), reps);
   // Check timings values
-  for (auto i = 0; i < tuner.timings().nrows(); i++) {
-    for (auto j = 0; j < tuner.timings().ncols(); j++) {
+  for (size_t i = 0; i < tuner.timings().nrows(); i++) {
+    for (size_t j = 0; j < tuner.timings().ncols(); j++) {
       EXPECT_EQ(tuner.timings()(i, j), 0);
     }
   }

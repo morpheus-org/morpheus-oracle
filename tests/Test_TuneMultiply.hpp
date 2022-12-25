@@ -27,9 +27,9 @@
 #include <Morpheus_Oracle.hpp>
 
 TEST(TuneMultiply, RunFirstTuner) {
-  using memory_space  = typename TEST_EXECSPACE::memory_space;
-  using DynamicMatrix = Morpheus::DynamicMatrix<double, memory_space>;
-  using CsrMatrix     = Morpheus::CsrMatrix<double, memory_space>;
+  using backend       = typename TEST_CUSTOM_EXECSPACE::backend;
+  using DynamicMatrix = Morpheus::DynamicMatrix<double, backend>;
+  using CsrMatrix     = Morpheus::CsrMatrix<double, backend>;
 
   Morpheus::Oracle::RunFirstTuner tuner(10, false);
   DynamicMatrix A;
@@ -55,12 +55,12 @@ TEST(TuneMultiply, RunFirstTuner) {
   Acsr_h.column_indices(5) = 2;
   Acsr_h.values(5)         = 60;
 
-  auto Acsr = Morpheus::create_mirror_container<TEST_EXECSPACE>(Acsr_h);
+  CsrMatrix Acsr(4, 3, 6);
   Morpheus::copy(Acsr_h, Acsr);
 
   A = Acsr;
 
-  Morpheus::Oracle::tune_multiply<TEST_EXECSPACE>(A, tuner);
+  Morpheus::Oracle::tune_multiply<TEST_CUSTOM_EXECSPACE>(A, tuner);
 
   EXPECT_TRUE(tuner.finished());
   // Check average timings were recorded

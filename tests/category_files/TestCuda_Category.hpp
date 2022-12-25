@@ -29,6 +29,8 @@
 #define TEST_CATEGORY cuda
 #define TEST_CATEGORY_NUMBER 5
 #define TEST_EXECSPACE Kokkos::Cuda
+#define TEST_CUSTOM_EXECSPACE Morpheus::Custom::Cuda
+#define TEST_GENERIC_EXECSPACE Morpheus::Generic::Cuda
 #define TEST_CATEGORY_FIXTURE(name) cuda_##name
 
 #endif  // MORPHEUS_ORACLE_TEST_CUDA_HPP

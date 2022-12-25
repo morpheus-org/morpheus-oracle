@@ -29,6 +29,8 @@
 #define TEST_CATEGORY openmp
 #define TEST_CATEGORY_NUMBER 2
 #define TEST_EXECSPACE Kokkos::OpenMP
+#define TEST_CUSTOM_EXECSPACE Morpheus::Custom::OpenMP
+#define TEST_GENERIC_EXECSPACE Morpheus::Generic::OpenMP
 #define TEST_CATEGORY_FIXTURE(name) openmp_##name
 
 #endif  // MORPHEUS_ORACLE_TEST_OPENMP_HPP

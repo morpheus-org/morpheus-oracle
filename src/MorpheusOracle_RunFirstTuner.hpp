@@ -24,6 +24,8 @@
 #ifndef MORPHEUSORACLE_RUNFIRSTTUNER_HPP
 #define MORPHEUSORACLE_RUNFIRSTTUNER_HPP
 
+#include <Morpheus_Core.hpp>
+
 #include <iomanip>
 #include <iostream>
 #include <limits>
@@ -92,7 +94,7 @@ namespace Oracle {
 class RunFirstTuner {
  public:
   /*! A two-dimensional vector of doubles */
-  using vec2d = Morpheus::DenseMatrix<double, int, Kokkos::HostSpace>;
+  using vec2d = Morpheus::DenseMatrix<double, size_t, Kokkos::HostSpace>;
   /*! A one-dimensional vector of doubles */
   using vec = Morpheus::DenseVector<double, Kokkos::HostSpace>;
 

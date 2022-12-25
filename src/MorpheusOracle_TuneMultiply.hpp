@@ -45,8 +45,9 @@ template <typename ExecSpace, typename DynamicMatrix, typename Tuner>
 void tune_multiply(DynamicMatrix& mat, Tuner& tuner) {
   static_assert(Morpheus::is_dynamic_matrix_container<DynamicMatrix>::value,
                 "Input Matrix for the tuner must be a valid DynamicMatrix.");
-  static_assert(Morpheus::is_execution_space<ExecSpace>::value,
-                "Input Execution Space must be a valid Execution Space.");
+  static_assert(
+      Morpheus::is_execution_space<typename ExecSpace::execution_space>::value,
+      "Input Execution Space must be a valid Execution Space.");
 
   Impl::tune_multiply<ExecSpace>(mat, tuner);
 }
