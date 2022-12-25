@@ -1,0 +1,135 @@
+# This workflow runs test when pushing on main and develop branches
+
+name: unit_tests-Linux
+on: [push, pull_request]
+
+concurrency:
+  group: ${ {github.event_name }}-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{github.event_name == 'pull_request'}}
+
+jobs:
+  CI:
+    continue-on-error: true
+    strategy:
+      matrix:
+        os: ['ubuntu-20.04']
+        # compiler: [{"vendor": "gnu", "compiler": "g++", "version": "8"}, 
+        #            {"vendor": "gnu", "compiler": "g++", "version": "9"}, 
+        #            {"vendor": "clang", "compiler": "clang++", "version": "11"}, 
+        #            {"vendor": "clang", "compiler": "clang++", "version": "12"}]
+        compiler: [{"vendor": "gnu", "compiler": "g++", "version": "8"}]
+        cmake_build_type: ['Release', 'Debug']
+        backend: [{"name": 'SERIAL', "tag": "Serial"}, {"name": "OPENMP", "tag": "OpenMP"}]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Install/Update Packages
+        run: |
+          sudo apt-get update
+          sudo apt-get install googletest
+
+      - name: Install/Update Compilers
+        run: |
+          sudo apt-get install ${{ matrix.compiler.compiler }}-${{ matrix.compiler.version }} \
+                               libomp-${{ matrix.compiler.version }}-dev
+          
+      # - name: Setup Intel Compilers
+      #   if: ${{ matrix.compiler.vendor == 'intel' }}
+      #   run: |
+      #     wget https://apt.repos.intel.com/intel-gpg-keys/GPG-PUB-KEY-INTEL-SW-PRODUCTS.PUB
+      #     sudo apt-key add GPG-PUB-KEY-INTEL-SW-PRODUCTS.PUB
+      #     rm GPG-PUB-KEY-INTEL-SW-PRODUCTS.PUB
+      #     sudo echo "deb https://apt.repos.intel.com/oneapi all main" | sudo tee /etc/apt/sources.list.d/oneAPI.list
+      #     sudo apt-get update
+
+      #     sudo apt-get install intel-basekit
+      #     source /opt/intel/oneapi/setvars.sh
+      #     printenv >> $GITHUB_ENV
+
+      - name: set_default_options
+        run: |
+          echo "cxx_compiler=${{ matrix.compiler.compiler }}-${{ matrix.compiler.version }}" >> $GITHUB_ENV
+          echo "kokkos_omp=Off" >> $GITHUB_ENV
+          echo "debug_mode=Off" >> $GITHUB_ENV
+
+      - name: Checkout Kokkos-v3.5.00
+        uses: actions/checkout@v3
+        with:
+          repository: kokkos/kokkos
+          ref: 3.5.00
+          path: kokkos
+      
+      - name: maybe_enable_openmp_backend
+        if: ${{ matrix.backend.name == 'OPENMP' }}
+        run: echo "kokkos_omp=On" >> $GITHUB_ENV
+
+      - name: maybe_enable_aggressive_vectorization
+        if: ${{ matrix.cmake_build_type == 'Debug' }}
+        run: echo "debug_mode=On" >> $GITHUB_ENV
+
+      - name: Install Kokkos
+        working-directory: kokkos
+        run: |
+          mkdir kokkos-build
+          cd kokkos-build
+
+          cmake .. -DCMAKE_CXX_COMPILER=${{ env.cxx_compiler }} \
+                   -DCMAKE_INSTALL_PREFIX=/usr/kokkos-install \
+                   -DCMAKE_BUILD_TYPE=${{ matrix.cmake_build_type }} \
+                   -DKokkos_ENABLE_DEBUG_BOUNDS_CHECK=${{ env.debug_mode }} \
+                   -DKokkos_ENABLE_OPENMP=${{ env.kokkos_omp }}  \
+                   -DKokkos_ENABLE_SERIAL=On \
+                   -DKokkos_ARCH_NATIVE=On \
+                   -DKokkos_CXX_STANDARD=17 \
+                   -DKokkos_ENABLE_COMPILER_WARNINGS=On \
+                   -DKokkos_ENABLE_AGGRESSIVE_VECTORIZATION=${{ env.debug_mode }}\
+                   -DKokkos_ENABLE_TESTS=Off \
+                   -DKokkos_ENABLE_EXAMPLES=Off
+
+          sudo cmake --build . --target install --parallel 2
+
+      - name: Installing Morpheus
+        run: |
+          mkdir morpheus-build
+          cd morpheus-build
+          cmake -B builddir \
+                -DCMAKE_CXX_COMPILER=${{ env.cxx_compiler }} \
+                -DCMAKE_INSTALL_PREFIX=/usr/morpheus-install \
+                -DCMAKE_BUILD_TYPE=${{ matrix.cmake_build_type }} \
+                -DKokkos_ROOT=/usr/kokkos-install \
+                -DMorpheus_ENABLE_EXAMPLES=Off \
+                -DMorpheus_ENABLE_TESTS=On \
+                -DMorpheus_ENABLE_INDIVIDUAL_TESTS=On
+          
+          sudo cmake --build . --target install --parallel 2
+
+      - name: Checkout code
+        uses: actions/checkout@v3      
+
+      - name: Configure Morpheus Oracle
+        run: |
+          cmake -B builddir \
+                -DCMAKE_CXX_COMPILER=${{ env.cxx_compiler }} \
+                -DCMAKE_INSTALL_PREFIX=/usr/morpheus-oracle-install \
+                -DCMAKE_BUILD_TYPE=${{ matrix.cmake_build_type }} \
+                -DMorpheus_ROOT=/usr/morpheus-install \
+                -DMorpheusOracle_ENABLE_EXAMPLES=Off \
+                -DMorpheusOracle_ENABLE_TESTS=On \
+                -DMorpheusOracle_ENABLE_INDIVIDUAL_TESTS=On
+      
+      - name: Build Morpheus Oracle
+        run: |
+          cmake --build builddir --parallel 2
+
+      - name: Run Serial Tests
+        working-directory: builddir
+        if: ${{ matrix.backend.tag == 'Serial' }}
+        run: |
+          mkdir -p mm_output
+          ./tests/MorpheusOracle_UnitTest_${{ matrix.backend.tag }}
+          
+      - name: Run OpenMP Tests
+        working-directory: builddir
+        if: ${{ matrix.backend.tag == 'OpenMP' }}
+        run: |
+          mkdir -p mm_output
+          export OMP_NUM_THREADS=2 && ./tests/MorpheusOracle_UnitTest_${{ matrix.backend.tag }} --kokkos-num-threads=2

@@ -1,0 +1,28 @@
+name: clang_format-Linux
+on: [push, pull_request]
+
+jobs:
+  code-format:
+    runs-on: ubuntu-20.04
+
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          ref: ${{ github.head_ref }}
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install clang-format-8
+
+      - name: Applying formatting
+        run: |
+          .bash/apply-clang-format
+
+      - name: Pushing changes if any
+        uses: stefanzweifel/git-auto-commit-action@v4
+        with:
+          commit_message: Applying code formatting (from Github Action)
+          commit_user_name: cstyl
+          commit_user_email: cstyl16@gmail.com
+          commit_author: Christodoulos Stylianou <cstyl16@gmail.com>
