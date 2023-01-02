@@ -108,6 +108,14 @@ macro(MORPHEUSORACLE_ADD_EXAMPLE_DIRECTORIES)
   endif()
 endmacro(MORPHEUSORACLE_ADD_EXAMPLE_DIRECTORIES)
 
+macro(MORPHEUSORACLE_ADD_BENCHMARK_DIRECTORIES)
+  if(MORPHEUSORACLE_ENABLE_BENCHMARKS)
+    foreach(BENCHMARK_DIR ${ARGN})
+      add_subdirectory(${BENCHMARK_DIR})
+    endforeach()
+  endif()
+endmacro(MORPHEUSORACLE_ADD_BENCHMARK_DIRECTORIES)
+
 function(morpheusoracle_add_option SUFFIX DEFAULT TYPE DOCSTRING)
   cmake_parse_arguments(
     OPT "" "" "VALID_ENTRIES" # if this is a list variable, the valid values in
