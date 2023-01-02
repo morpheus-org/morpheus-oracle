@@ -42,8 +42,6 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH}
                       "${CMAKE_CURRENT_SOURCE_DIR}/cmake/Modules/")
 morpheusoracle_add_option("ENABLE_EXAMPLES" OFF BOOL
                           "Whether to build examples. Default: OFF")
-morpheusoracle_add_option("ENABLE_BENCHMARKS" OFF BOOL
-                          "Whether to build benchmarks. Default: OFF")
 morpheusoracle_add_option("ENABLE_TESTS" OFF BOOL
                           "Whether to build tests. Default: OFF")
 morpheusoracle_add_option("ENABLE_DOCS" OFF BOOL
@@ -56,7 +54,6 @@ if(MorpheusOracle_INSTALL_TESTING)
   # Force testing on if we are doing intall testing
   set(MORPHEUSORACLE_ENABLE_TESTS ON)
   set(MORPHEUSORACLE_ENABLE_EXAMPLES ON)
-  set(MORPHEUSORACLE_ENABLE_BENCHMARKS ON)
   # Don't build, load installed kernels
   find_package(MorpheusOracle REQUIRED)
 
@@ -74,15 +71,12 @@ else()
 
   add_subdirectory(src)
 
-  if(MorpheusOracle_ENABLE_TESTS
-     OR MorpheusOracle_ENABLE_EXAMPLES
-     OR MorpheusOracle_ENABLE_BENCHMARKS)
+  if(MorpheusOracle_ENABLE_TESTS OR MorpheusOracle_ENABLE_EXAMPLES)
     include(cmake/morpheusoracle_gtest.cmake)
   endif()
 
   morpheusoracle_add_test_directories(tests)
   morpheusoracle_add_example_directories(examples)
-  morpheusoracle_add_benchmark_directories(profiling-runs)
 
   morpheusoracle_package_postprocess()
   if(MorpheusOracle_ENABLE_DOCS)
