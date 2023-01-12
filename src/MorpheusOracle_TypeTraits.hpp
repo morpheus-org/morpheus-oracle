@@ -24,7 +24,9 @@
 #ifndef MORPHEUSORACLE_TYPETRAITS_HPP
 #define MORPHEUSORACLE_TYPETRAITS_HPP
 
-#include <MorpheusOracle_fwd.hpp>
+#include <fwd/MorpheusOracle_Fwd_RunFirstTuner.hpp>
+#include <fwd/MorpheusOracle_Fwd_DecisionTree.hpp>
+#include <fwd/MorpheusOracle_Fwd_RandomForest.hpp>
 
 #include <type_traits>
 
@@ -71,6 +73,72 @@ class is_run_first_tuner {
  */
 template <typename T>
 inline constexpr bool is_run_first_tuner_v = is_run_first_tuner<T>::value;
+
+/**
+ * @brief A valid Decision Tree container is the one that is either of type
+ * \p DecisionTree or a derived class of it.
+ *
+ * @tparam T Type passed for check.
+ */
+template <class T>
+class is_decision_tree {
+  typedef char yes[1];
+  typedef char no[2];
+
+  template <class U>
+  static yes& test(
+      U*,
+      typename std::enable_if<std::is_same<DecisionTree, U>::value ||
+                              std::is_base_of<DecisionTree, U>::value>::type* =
+          nullptr);
+
+  template <class U>
+  static no& test(...);
+
+ public:
+  static const bool value = sizeof(test<T>(nullptr)) == sizeof(yes);
+};
+
+/**
+ * @brief Short-hand to \p is_decision_tree.
+ *
+ * @tparam T Type passed for check.
+ */
+template <typename T>
+inline constexpr bool is_decision_tree_v = is_decision_tree<T>::value;
+
+/**
+ * @brief A valid Random Forest container is the one that is either of type
+ * \p RandomForest or a derived class of it.
+ *
+ * @tparam T Type passed for check.
+ */
+template <class T>
+class is_random_forest {
+  typedef char yes[1];
+  typedef char no[2];
+
+  template <class U>
+  static yes& test(
+      U*,
+      typename std::enable_if<std::is_same<RandomForest, U>::value ||
+                              std::is_base_of<RandomForest, U>::value>::type* =
+          nullptr);
+
+  template <class U>
+  static no& test(...);
+
+ public:
+  static const bool value = sizeof(test<T>(nullptr)) == sizeof(yes);
+};
+
+/**
+ * @brief Short-hand to \p is_random_forest.
+ *
+ * @tparam T Type passed for check.
+ */
+template <typename T>
+inline constexpr bool is_random_forest_v = is_random_forest<T>::value;
 
 /*! \} end of typetraits group
  */

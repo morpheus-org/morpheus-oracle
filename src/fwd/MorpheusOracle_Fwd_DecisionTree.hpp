@@ -1,5 +1,5 @@
 /**
- * Morpheus_Oracle.hpp
+ * MorpheusOracle_Fwd_DecisionTree.hpp
  *
  * EPCC, The University of Edinburgh
  *
@@ -21,17 +21,13 @@
  * limitations under the License.
  */
 
-#ifndef MORPHEUS_ORACLE_HPP
-#define MORPHEUS_ORACLE_HPP
+#ifndef MORPHEUSORACLE_FWD_DECISIONTREE_HPP
+#define MORPHEUSORACLE_FWD_DECISIONTREE_HPP
 
-#include <Morpheus_Core.hpp>
+namespace Morpheus {
+namespace Oracle {
+class DecisionTree;
+}  // namespace Oracle
+}  // namespace Morpheus
 
-#include <MorpheusOracle_Macros.hpp>
-#include <MorpheusOracle_RunFirstTuner.hpp>
-#include <MorpheusOracle_DecisionTree.hpp>
-#include <MorpheusOracle_RandomForest.hpp>
-#include <MorpheusOracle_TuneMultiply.hpp>
-#include <MorpheusOracle_TypeTraits.hpp>
-#include <MorpheusOracle_Loader.hpp>
-
-#endif  // MORPHEUS_ORACLE_HPP
+#endif  // MORPHEUSORACLE_FWD_DECISIONTREE_HPP

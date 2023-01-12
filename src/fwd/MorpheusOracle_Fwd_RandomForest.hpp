@@ -1,5 +1,5 @@
 /**
- * MorpheusOracle_fwd.hpp
+ * MorpheusOracle_Fwd_RandomForest.hpp
  *
  * EPCC, The University of Edinburgh
  *
@@ -21,14 +21,13 @@
  * limitations under the License.
  */
 
-#ifndef MORPHEUSORACLE_FWD_HPP
-#define MORPHEUSORACLE_FWD_HPP
+#ifndef MORPHEUSORACLE_FWD_RANDOMFOREST_HPP
+#define MORPHEUSORACLE_FWD_RANDOMFOREST_HPP
 
 namespace Morpheus {
 namespace Oracle {
-class RunFirstTuner;
-
+class RandomForest;
 }  // namespace Oracle
 }  // namespace Morpheus
 
-#endif  // MORPHEUSORACLE_FWD_HPP
+#endif  // MORPHEUSORACLE_FWD_RANDOMFOREST_HPP
