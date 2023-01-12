@@ -90,6 +90,24 @@ class RandomForest {
     load_forest(fmetadata, ftrees);
   }
 
+  RandomForest(const RandomForest& forest)
+      : nfeatures_(forest.nfeatures()),
+        nclasses_(forest.nclasses()),
+        noutputs_(forest.noutputs()),
+        classes_(forest.cclasses()),
+        feature_names_(forest.cfeature_names()),
+        estimators_(forest.cestimators()) {}
+
+  RandomForest& operator=(const RandomForest& forest) {
+    nfeatures_     = forest.nfeatures();
+    nclasses_      = forest.nclasses();
+    noutputs_      = forest.noutputs();
+    classes_       = forest.cclasses();
+    feature_names_ = forest.cfeature_names();
+    estimators_    = forest.cestimators();
+    return *this;
+  }
+
   void load_forest(const std::string& fmetadata, const string_vector& ftrees) {
     Morpheus::Oracle::load_forest(fmetadata, ftrees, *this);
   }
@@ -99,7 +117,6 @@ class RandomForest {
     index_vector voters(estimators().size(), 0);
     for (size_type i = 0; i < estimators().size(); i++) {
       voters[i] = estimators(i).recurse(sample);
-      std::cout << "Voter " << i << ": " << voters[i] << std::endl;
     }
 
     // Majority voting to determine the selected class
@@ -133,21 +150,31 @@ class RandomForest {
     }
   }
 
-  size_type nfeatures() { return nfeatures_; }
-  size_type nclasses() { return nclasses_; }
-  size_type noutputs() { return noutputs_; }
+  size_type nfeatures() const { return nfeatures_; }
+  size_type nclasses() const { return nclasses_; }
+  size_type noutputs() const { return noutputs_; }
 
-  void set_nfeatures(size_t nfeatures) { nfeatures_ = nfeatures; }
-  void set_nclasses(size_t nclasses) { nclasses_ = nclasses; }
-  void set_noutputs(size_t noutputs) { noutputs_ = noutputs; }
+  void set_nfeatures(const size_t nfeatures) { nfeatures_ = nfeatures; }
+  void set_nclasses(const size_t nclasses) { nclasses_ = nclasses; }
+  void set_noutputs(const size_t noutputs) { noutputs_ = noutputs; }
 
   index_type& classes(size_t i) { return classes_[i]; }
   tree_type& estimators(size_t i) { return estimators_[i]; }
   string_type& feature_names(size_t i) { return feature_names_[i]; }
 
+  const index_type& cclasses(size_t i) const { return classes_[i]; }
+  const tree_type& cestimators(size_t i) const { return estimators_[i]; }
+  const string_type& cfeature_names(size_t i) const {
+    return feature_names_[i];
+  }
+
   index_vector& classes() { return classes_; }
   tree_vector& estimators() { return estimators_; }
   string_vector& feature_names() { return feature_names_; }
+
+  const index_vector& cclasses() const { return classes_; }
+  const tree_vector& cestimators() const { return estimators_; }
+  const string_vector& cfeature_names() const { return feature_names_; }
 
   /*! \cond */
  private:

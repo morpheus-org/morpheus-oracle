@@ -99,6 +99,34 @@ class DecisionTree {
     load_tree(filename);
   }
 
+  DecisionTree(const DecisionTree& tree)
+      : nfeatures_(tree.nfeatures()),
+        nclasses_(tree.nclasses()),
+        nodecount_(tree.nodecount()),
+        maxdepth_(tree.maxdepth()),
+        classes_(tree.cclasses()),
+        feature_names_(tree.cfeature_names()),
+        left_child_(tree.cleft_child()),
+        right_child_(tree.cright_child()),
+        threshold_(tree.cthreshold()),
+        features_(tree.cfeatures()),
+        values_(tree.cvalues()) {}
+
+  DecisionTree& operator=(const DecisionTree& tree) {
+    nfeatures_     = tree.nfeatures();
+    nclasses_      = tree.nclasses();
+    nodecount_     = tree.nodecount();
+    maxdepth_      = tree.maxdepth();
+    classes_       = tree.cclasses();
+    feature_names_ = tree.cfeature_names();
+    left_child_    = tree.cleft_child();
+    right_child_   = tree.cright_child();
+    threshold_     = tree.cthreshold();
+    features_      = tree.cfeatures();
+    values_        = tree.cvalues();
+    return *this;
+  }
+
   void load_tree(const std::string& filename) {
     Morpheus::Oracle::load_tree(filename, *this);
   }
@@ -150,15 +178,15 @@ class DecisionTree {
     print_matrix(values(), nodecount(), nclasses(), std::cout, offset + 2);
   }
 
-  size_type nfeatures() { return nfeatures_; }
-  size_type nclasses() { return nclasses_; }
-  size_type nodecount() { return nodecount_; }
-  size_type maxdepth() { return maxdepth_; }
+  size_type nfeatures() const { return nfeatures_; }
+  size_type nclasses() const { return nclasses_; }
+  size_type nodecount() const { return nodecount_; }
+  size_type maxdepth() const { return maxdepth_; }
 
-  void set_nfeatures(size_t nfeatures) { nfeatures_ = nfeatures; }
-  void set_nclasses(size_t nclasses) { nclasses_ = nclasses; }
-  void set_nodecount(size_t nodecount) { nodecount_ = nodecount; }
-  void set_maxdepth(size_t maxdepth) { maxdepth_ = maxdepth; }
+  void set_nfeatures(const size_t nfeatures) { nfeatures_ = nfeatures; }
+  void set_nclasses(const size_t nclasses) { nclasses_ = nclasses; }
+  void set_nodecount(const size_t nodecount) { nodecount_ = nodecount; }
+  void set_maxdepth(const size_t maxdepth) { maxdepth_ = maxdepth; }
 
   index_type& classes(size_t i) { return classes_(i); }
   index_type& left_child(size_t i) { return left_child_(i); }
@@ -168,6 +196,16 @@ class DecisionTree {
   value_type& values(size_t i, size_t j) { return values_(i, j); }
   string_type& feature_names(size_t i) { return feature_names_[i]; }
 
+  const index_type& cclasses(size_t i) const { return classes_(i); }
+  const index_type& cleft_child(size_t i) const { return left_child_(i); }
+  const index_type& cright_child(size_t i) const { return right_child_(i); }
+  const value_type& cthreshold(size_t i) const { return threshold_(i); }
+  const value_type& cfeatures(size_t i) const { return features_(i); }
+  const value_type& cvalues(size_t i, size_t j) const { return values_(i, j); }
+  const string_type& cfeature_names(size_t i) const {
+    return feature_names_[i];
+  }
+
   index_vector& classes() { return classes_; }
   index_vector& left_child() { return left_child_; }
   index_vector& right_child() { return right_child_; }
@@ -175,6 +213,14 @@ class DecisionTree {
   scalar_vector& features() { return features_; }
   scalar_vector2d& values() { return values_; }
   string_vector& feature_names() { return feature_names_; }
+
+  const index_vector& cclasses() const { return classes_; }
+  const index_vector& cleft_child() const { return left_child_; }
+  const index_vector& cright_child() const { return right_child_; }
+  const scalar_vector& cthreshold() const { return threshold_; }
+  const scalar_vector& cfeatures() const { return features_; }
+  const scalar_vector2d& cvalues() const { return values_; }
+  const string_vector& cfeature_names() const { return feature_names_; }
 
   /*! \cond */
  private:
