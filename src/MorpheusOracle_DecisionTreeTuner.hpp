@@ -38,6 +38,7 @@ namespace Oracle {
 
 class DecisionTreeTuner {
  public:
+  using scalar_vector = Morpheus::DenseVector<double, Morpheus::HostSpace>;
   /*! Enum value specifying the state of the tuner when the optimum format
    * has not been yet selected*/
   enum format_state { INVALID_FORMAT_STATE = -1 };
@@ -52,6 +53,9 @@ class DecisionTreeTuner {
 
   void reload(const std::string& filename) { tree_.load_tree(filename); }
 
+  void tune(const scalar_vector& sample) {
+    format_id_ = tree_.evaluate(sample);
+  }
   /**
    * @brief Resets the state of the tuner to the initial state.
    *

@@ -38,6 +38,7 @@ namespace Oracle {
 
 class RandomForestTuner {
  public:
+  using scalar_vector = Morpheus::DenseVector<double, Morpheus::HostSpace>;
   /*! Enum value specifying the state of the tuner when the optimum format
    * has not been yet selected*/
   enum format_state { INVALID_FORMAT_STATE = -1 };
@@ -54,6 +55,11 @@ class RandomForestTuner {
               const std::vector<std::string>& ftrees) {
     forest_.load_forest(fmetadata, ftrees);
   }
+
+  void tune(const scalar_vector& sample) {
+    format_id_ = forest_.evaluate(sample);
+  }
+
   /**
    * @brief Resets the state of the tuner to the initial state.
    *

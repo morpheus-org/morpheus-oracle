@@ -24,9 +24,11 @@
 #ifndef MORPHEUSORACLE_TYPETRAITS_HPP
 #define MORPHEUSORACLE_TYPETRAITS_HPP
 
-#include <fwd/MorpheusOracle_Fwd_RunFirstTuner.hpp>
 #include <fwd/MorpheusOracle_Fwd_DecisionTree.hpp>
 #include <fwd/MorpheusOracle_Fwd_RandomForest.hpp>
+#include <fwd/MorpheusOracle_Fwd_RunFirstTuner.hpp>
+#include <fwd/MorpheusOracle_Fwd_DecisionTreeTuner.hpp>
+#include <fwd/MorpheusOracle_Fwd_RandomForestTuner.hpp>
 
 #include <type_traits>
 
@@ -139,6 +141,72 @@ class is_random_forest {
  */
 template <typename T>
 inline constexpr bool is_random_forest_v = is_random_forest<T>::value;
+
+/**
+ * @brief A valid Decision Tree Tuner is the one that is either of type
+ * \p DecisionTreeTuner or a derived class of it.
+ *
+ * @tparam T Type passed for check.
+ */
+template <class T>
+class is_decision_tree_tuner {
+  typedef char yes[1];
+  typedef char no[2];
+
+  template <class U>
+  static yes& test(
+      U*, typename std::enable_if<
+              std::is_same<DecisionTreeTuner, U>::value ||
+              std::is_base_of<DecisionTreeTuner, U>::value>::type* = nullptr);
+
+  template <class U>
+  static no& test(...);
+
+ public:
+  static const bool value = sizeof(test<T>(nullptr)) == sizeof(yes);
+};
+
+/**
+ * @brief Short-hand to \p is_decision_tree_tuner.
+ *
+ * @tparam T Type passed for check.
+ */
+template <typename T>
+inline constexpr bool is_decision_tree_tuner_v =
+    is_decision_tree_tuner<T>::value;
+
+/**
+ * @brief A valid Random Forest Tuner is the one that is either of type
+ * \p RandomForestTuner or a derived class of it.
+ *
+ * @tparam T Type passed for check.
+ */
+template <class T>
+class is_random_forest_tuner {
+  typedef char yes[1];
+  typedef char no[2];
+
+  template <class U>
+  static yes& test(
+      U*, typename std::enable_if<
+              std::is_same<RandomForestTuner, U>::value ||
+              std::is_base_of<RandomForestTuner, U>::value>::type* = nullptr);
+
+  template <class U>
+  static no& test(...);
+
+ public:
+  static const bool value = sizeof(test<T>(nullptr)) == sizeof(yes);
+};
+
+/**
+ * @brief Short-hand to \p is_random_forest_tuner.
+ *
+ * @tparam T Type passed for check.
+ */
+template <typename T>
+inline constexpr bool is_random_forest_tuner_v =
+    is_random_forest_tuner<T>::value;
 
 /*! \} end of typetraits group
  */
