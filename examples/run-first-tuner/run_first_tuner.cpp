@@ -37,7 +37,7 @@ using backend       = typename Space::backend;
 using DynamicMatrix = Morpheus::DynamicMatrix<double, backend>;
 
 int main(int argc, char* argv[]) {
-  Morpheus::initialize();
+  Morpheus::initialize(argc, argv);
   {
     if (argc != 4) {
       std::stringstream rt_error_msg;
@@ -72,7 +72,7 @@ int main(int argc, char* argv[]) {
 
     Morpheus::Oracle::RunFirstTuner tuner(reps, verbose);
 
-    Morpheus::Oracle::tune_multiply<Morpheus::Serial>(A, tuner);
+    Morpheus::Oracle::tune_multiply<Space>(A, tuner);
     tuner.print();
   }
   Morpheus::finalize();

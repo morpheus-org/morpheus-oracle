@@ -38,7 +38,7 @@ void tune_multiply(
     Matrix& mat, Tuner& tuner,
     typename std::enable_if_t<
         Morpheus::Oracle::is_decision_tree_tuner_v<Tuner>>* = nullptr) {
-  using vector = typename Tuner::scalar_vector;
+  using vector = typename Tuner::scalar_vector::HostMirror;
   using ns     = std::chrono::nanoseconds;
 
   auto start                 = std::chrono::steady_clock::now();

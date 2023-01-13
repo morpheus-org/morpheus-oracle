@@ -22,7 +22,7 @@
  */
 
 #include <Morpheus_Oracle.hpp>
-#include <filesystem>
+#include <dirent.h>
 
 #if defined(EXAMPLE_ENABLE_SERIAL)
 using Space = Morpheus::Serial;
@@ -38,7 +38,7 @@ using backend       = typename Space::backend;
 using DynamicMatrix = Morpheus::DynamicMatrix<double, backend>;
 
 int main(int argc, char* argv[]) {
-  Morpheus::initialize();
+  Morpheus::initialize(argc, argv);
   {
     if (argc != 3) {
       std::stringstream rt_error_msg;
@@ -71,17 +71,28 @@ int main(int argc, char* argv[]) {
 
     std::vector<std::string> ftrees;
     std::string fmetadata;
-    for (const auto& entry : std::filesystem::directory_iterator(dforest)) {
-      std::string path = entry.path();
-      if (path.find("metadata") != std::string::npos) {
-        fmetadata = path;
-      } else {
-        ftrees.push_back(path);
+    struct dirent* entry = nullptr;
+    DIR* dp              = nullptr;
+
+    dp = opendir(dforest.c_str());
+    if (dp != nullptr) {
+      while ((entry = readdir(dp))) {
+        std::string filename = entry->d_name;
+
+        if (filename.find("metadata") != std::string::npos) {
+          fmetadata = dforest + "/" + filename;
+        } else if (filename == "." || filename == "..") {
+          continue;
+        } else {
+          ftrees.push_back(dforest + "/" + filename);
+        }
+        std::cout << (dforest + "/" + filename) << std::endl;
       }
     }
+    closedir(dp);
 
     Morpheus::Oracle::RandomForestTuner tuner(fmetadata, ftrees, true);
-    Morpheus::Oracle::tune_multiply<Morpheus::Serial>(A, tuner);
+    Morpheus::Oracle::tune_multiply<backend>(A, tuner);
     tuner.print();
   }
   Morpheus::finalize();

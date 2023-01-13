@@ -48,14 +48,13 @@ void tune_multiply(
 
   vector x(mat.ncols(), value_type(2)), y(mat.nrows(), value_type(0));
 
-  auto mat_mirror =
-      Morpheus::create_mirror<typename Matrix::execution_space>(mat);
+  auto mat_mirror = Morpheus::create_mirror<ExecSpace>(mat);
   Morpheus::copy(mat, mat_mirror);
 
   auto mat_mirror_h = Morpheus::create_mirror_container(mat_mirror);
   Morpheus::copy(mat_mirror, mat_mirror_h);
 
-  size_t current_format = Morpheus::Oracle::RunFirstTuner::INVALID_FORMAT_STATE;
+  int current_format = Morpheus::Oracle::RunFirstTuner::INVALID_FORMAT_STATE;
   Morpheus::conversion_error_e status = Morpheus::CONV_SUCCESS;
   while (!tuner.finished()) {
     if (current_format != tuner.format_count()) {

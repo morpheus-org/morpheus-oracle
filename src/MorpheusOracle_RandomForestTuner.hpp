@@ -138,9 +138,9 @@ class RandomForestTuner {
    * that until the tuner finishes the tuning process, the format ID is set to
    * \p INVALID_FORMAT_STATE.
    *
-   * @return size_t Optimum format index.
+   * @return int Optimum format index.
    */
-  size_t format_id() const { return format_id_; }
+  int format_id() const { return format_id_; }
 
   /**
    * @brief Checks if the tuner prints verbose messages.
@@ -161,7 +161,7 @@ class RandomForestTuner {
  private:
   RandomForest forest_;
   scalar_vector timings_;
-  size_t format_id_;
+  int format_id_;
   bool verbose_;
   /*! \endcond */
 };

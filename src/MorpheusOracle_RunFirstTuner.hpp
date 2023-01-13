@@ -223,7 +223,7 @@ class RunFirstTuner {
       cout << setw(10) << "tmax\t";
       cout << setw(10) << "tavg\t" << endl;
 
-      for (size_t i = 0; i < nformats_; i++) {
+      for (int i = 0; i < nformats_; i++) {
         cout << setw(10) << i;
         cout << "\t" << setw(10) << setprecision(7) << min_timings_(i);
         cout << "\t" << setw(10) << setprecision(7) << max_timings_(i);
@@ -277,25 +277,25 @@ class RunFirstTuner {
   /**
    * @brief Provides the current format index the tuner optimizes for.
    *
-   * @return size_t Current format index.
+   * @return int Current format index.
    */
-  size_t format_count() const { return format_count_; }
+  int format_count() const { return format_count_; }
 
   /**
    * @brief Provides the total number of formats the tuner optimizes for.
    *
-   * @return size_t Total number of formats.
+   * @return int Total number of formats.
    */
-  size_t nformats() const { return nformats_; }
+  int nformats() const { return nformats_; }
 
   /**
    * @brief Provides the index of the optimum format selected by the tuner. Note
    * that until the tuner finishes the tuning process, the format ID is set to
    * \p INVALID_FORMAT_STATE.
    *
-   * @return size_t Optimum format index.
+   * @return int Optimum format index.
    */
-  size_t format_id() const { return format_id_; }
+  int format_id() const { return format_id_; }
 
   /**
    * @brief Provides the current repetition count the tuner runs for.
@@ -339,7 +339,7 @@ class RunFirstTuner {
     // best format the one with the minimum average
     double mint = avg_timings_(0);
     format_id_  = 0;
-    for (size_t i = 0; i < nformats(); i++) {
+    for (int i = 0; i < nformats(); i++) {
       if (avg_timings_(i) < mint) {
         mint       = avg_timings_(i);
         format_id_ = i;
@@ -348,7 +348,7 @@ class RunFirstTuner {
   }
 
   void compute_max_timings_() {
-    for (size_t i = 0; i < nformats_; i++) {
+    for (int i = 0; i < nformats_; i++) {
       double maxt = std::numeric_limits<double>::min();
       for (size_t j = 0; j < rep_limit_; j++) {
         if (timings_(i, j) > maxt) {
@@ -360,7 +360,7 @@ class RunFirstTuner {
   }
 
   void compute_avg_timings_() {
-    for (size_t i = 0; i < nformats_; i++) {
+    for (int i = 0; i < nformats_; i++) {
       double sumt = 0.0;
       for (size_t j = 0; j < rep_limit_; j++) {
         sumt += timings_(i, j);
@@ -370,7 +370,7 @@ class RunFirstTuner {
   }
 
   void compute_min_timings_() {
-    for (size_t i = 0; i < nformats_; i++) {
+    for (int i = 0; i < nformats_; i++) {
       double mint = std::numeric_limits<double>::max();
       for (size_t j = 0; j < rep_limit_; j++) {
         if (timings_(i, j) < mint) {
@@ -385,9 +385,9 @@ class RunFirstTuner {
   vec max_timings_;
   vec avg_timings_;
   vec min_timings_;
-  size_t format_id_;
-  size_t format_count_;
-  size_t nformats_;
+  int format_id_;
+  int format_count_;
+  int nformats_;
   size_t rep_limit_;
   size_t rep_count_;
   bool verbose_;
