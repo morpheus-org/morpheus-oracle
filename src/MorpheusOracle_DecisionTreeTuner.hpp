@@ -85,6 +85,29 @@ class DecisionTreeTuner {
     cout << "Tuner executed using a DecisionTree loaded from: "
          << tree_.filename() << endl;
     cout << endl;
+
+    if (is_verbose()) {
+      cout << "Metadata:" << endl;
+      cout << "---------" << endl;
+      cout << setw(25) << "Number of Features: " << tree_.nfeatures() << endl;
+      cout << setw(25) << "Number of Classes: " << tree_.nclasses() << endl;
+      cout << setw(25) << "Number of Nodes: " << tree_.nodecount() << endl;
+      cout << setw(25) << "Max Depth: " << tree_.maxdepth() << endl;
+
+      cout << setw(25) << "Classes: ";
+      for (size_t i = 0; i < tree_.cclasses().size(); i++) {
+        cout << tree_.cclasses(i) << "\t";
+      }
+      cout << endl;
+
+      cout << setw(25) << "Feature Names: ";
+      for (size_t i = 0; i < tree_.cfeature_names().size(); i++) {
+        cout << tree_.cfeature_names(i) << "\t";
+      }
+      cout << endl;
+      cout << endl;
+    }
+
     cout << "Tuner timing statistics:" << endl;
     cout << "------------------------" << endl;
     cout << setw(20) << "Feature Extraction: " << timings_[0] << " (s)" << endl;

@@ -67,7 +67,7 @@ int main(int argc, char* argv[]) {
     DynamicMatrix A = Morpheus::create_mirror<Space>(Ah);
     Morpheus::copy(Ah, A);
 
-    Morpheus::Oracle::DecisionTreeTuner tuner(ftree);
+    Morpheus::Oracle::DecisionTreeTuner tuner(ftree, true);
     Morpheus::Oracle::tune_multiply<Morpheus::Serial>(A, tuner);
     tuner.print();
   }

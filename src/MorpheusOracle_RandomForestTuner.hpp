@@ -93,8 +93,28 @@ class RandomForestTuner {
       cout << "Trees were loaded from:" << endl;
       std::vector<std::string> tree_filenames = forest_.ctree_filenames();
       for (size_t i = 0; i < tree_filenames.size(); i++) {
-        cout << "Tree [" << i << "]: " << tree_filenames[i] << endl;
+        cout << "\tTree [" << i << "]: " << tree_filenames[i] << endl;
       }
+
+      cout << endl;
+      cout << "Metadata:" << endl;
+      cout << "---------" << endl;
+      cout << setw(25) << "Number of Features: " << forest_.nfeatures() << endl;
+      cout << setw(25) << "Number of Classes: " << forest_.nclasses() << endl;
+      cout << setw(25) << "Number of Outputs: " << forest_.noutputs() << endl;
+
+      cout << setw(25) << "Classes: ";
+      for (size_t i = 0; i < forest_.cclasses().size(); i++) {
+        cout << forest_.cclasses(i) << "\t";
+      }
+      cout << endl;
+
+      cout << setw(25) << "Feature Names: ";
+      for (size_t i = 0; i < forest_.cfeature_names().size(); i++) {
+        cout << forest_.cfeature_names(i) << "\t";
+      }
+      cout << endl;
+      cout << endl;
     }
     cout << endl;
     cout << "Tuner timing statistics:" << endl;
