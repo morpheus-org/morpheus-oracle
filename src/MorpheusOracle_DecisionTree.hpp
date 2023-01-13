@@ -84,7 +84,7 @@ class DecisionTree {
    */
   DecisionTree() = default;
 
-  DecisionTree(const std::string& filename)
+  DecisionTree(const string_type& filename)
       : nfeatures_(0),
         nclasses_(0),
         nodecount_(0),
@@ -95,7 +95,8 @@ class DecisionTree {
         right_child_(),
         threshold_(),
         features_(),
-        values_() {
+        values_(),
+        tree_filename_(filename) {
     load_tree(filename);
   }
 
@@ -110,7 +111,8 @@ class DecisionTree {
         right_child_(tree.cright_child()),
         threshold_(tree.cthreshold()),
         features_(tree.cfeatures()),
-        values_(tree.cvalues()) {}
+        values_(tree.cvalues()),
+        tree_filename_(tree.filename()) {}
 
   DecisionTree& operator=(const DecisionTree& tree) {
     nfeatures_     = tree.nfeatures();
@@ -124,10 +126,12 @@ class DecisionTree {
     threshold_     = tree.cthreshold();
     features_      = tree.cfeatures();
     values_        = tree.cvalues();
+    tree_filename_ = tree.filename();
     return *this;
   }
 
-  void load_tree(const std::string& filename) {
+  void load_tree(const string_type& filename) {
+    tree_filename_ = filename;
     Morpheus::Oracle::load_tree(filename, *this);
   }
 
@@ -182,6 +186,7 @@ class DecisionTree {
   size_type nclasses() const { return nclasses_; }
   size_type nodecount() const { return nodecount_; }
   size_type maxdepth() const { return maxdepth_; }
+  string_type filename() const { return tree_filename_; }
 
   void set_nfeatures(const size_t nfeatures) { nfeatures_ = nfeatures; }
   void set_nclasses(const size_t nclasses) { nclasses_ = nclasses; }
@@ -232,6 +237,7 @@ class DecisionTree {
   scalar_vector threshold_;
   scalar_vector features_;
   scalar_vector2d values_;
+  string_type tree_filename_;
   const int LEAF = -2;
   /*! \endcond */
 };

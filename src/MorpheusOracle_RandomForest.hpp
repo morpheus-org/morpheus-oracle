@@ -86,7 +86,9 @@ class RandomForest {
         noutputs_(0),
         classes_(),
         feature_names_(),
-        estimators_() {
+        estimators_(),
+        metadata_filename_(fmetadata),
+        tree_filenames_(ftrees) {
     load_forest(fmetadata, ftrees);
   }
 
@@ -96,19 +98,25 @@ class RandomForest {
         noutputs_(forest.noutputs()),
         classes_(forest.cclasses()),
         feature_names_(forest.cfeature_names()),
-        estimators_(forest.cestimators()) {}
+        estimators_(forest.cestimators()),
+        metadata_filename_(forest.meatadata_filename()),
+        tree_filenames_(forest.ctree_filenames()) {}
 
   RandomForest& operator=(const RandomForest& forest) {
-    nfeatures_     = forest.nfeatures();
-    nclasses_      = forest.nclasses();
-    noutputs_      = forest.noutputs();
-    classes_       = forest.cclasses();
-    feature_names_ = forest.cfeature_names();
-    estimators_    = forest.cestimators();
+    nfeatures_         = forest.nfeatures();
+    nclasses_          = forest.nclasses();
+    noutputs_          = forest.noutputs();
+    classes_           = forest.cclasses();
+    feature_names_     = forest.cfeature_names();
+    estimators_        = forest.cestimators();
+    metadata_filename_ = forest.meatadata_filename();
+    tree_filenames_    = forest.ctree_filenames();
     return *this;
   }
 
   void load_forest(const std::string& fmetadata, const string_vector& ftrees) {
+    metadata_filename_ = fmetadata;
+    tree_filenames_    = ftrees;
     Morpheus::Oracle::load_forest(fmetadata, ftrees, *this);
   }
 
@@ -153,6 +161,8 @@ class RandomForest {
   size_type nfeatures() const { return nfeatures_; }
   size_type nclasses() const { return nclasses_; }
   size_type noutputs() const { return noutputs_; }
+  string_type meatadata_filename() const { return metadata_filename_; }
+  const string_vector& ctree_filenames() const { return tree_filenames_; }
 
   void set_nfeatures(const size_t nfeatures) { nfeatures_ = nfeatures; }
   void set_nclasses(const size_t nclasses) { nclasses_ = nclasses; }
@@ -182,6 +192,8 @@ class RandomForest {
   index_vector classes_;
   string_vector feature_names_;
   tree_vector estimators_;
+  string_type metadata_filename_;
+  string_vector tree_filenames_;
   /*! \endcond */
 };
 

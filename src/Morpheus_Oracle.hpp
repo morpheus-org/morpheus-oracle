@@ -26,12 +26,20 @@
 
 #include <Morpheus_Core.hpp>
 
-#include <MorpheusOracle_Macros.hpp>
+// Tuners
 #include <MorpheusOracle_RunFirstTuner.hpp>
 #include <MorpheusOracle_DecisionTreeTuner.hpp>
 #include <MorpheusOracle_RandomForestTuner.hpp>
+
+// Operations
+#include <MorpheusOracle_FeatureExtraction.hpp>
 #include <MorpheusOracle_TuneMultiply.hpp>
+
+// Utils
+#include <MorpheusOracle_Macros.hpp>
 #include <MorpheusOracle_TypeTraits.hpp>
+
+// IO
 #include <MorpheusOracle_Loader.hpp>
 
 #endif  // MORPHEUS_ORACLE_HPP

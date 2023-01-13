@@ -25,6 +25,9 @@
 #define MORPHEUSORACLE_IMPL_DECISIONTREE_TUNEMULTIPLY_IMPL_HPP
 
 #include <MorpheusOracle_TypeTraits.hpp>
+#include <MorpheusOracle_FeatureExtraction.hpp>
+
+#include <chrono>
 
 namespace Morpheus {
 namespace Oracle {
@@ -36,11 +39,21 @@ void tune_multiply(
     typename std::enable_if_t<
         Morpheus::Oracle::is_decision_tree_tuner_v<Tuner>>* = nullptr) {
   using vector = typename Tuner::scalar_vector;
+  using ns     = std::chrono::nanoseconds;
 
-  vector features;
-  // TODO Generate Vector of features from Matrix
+  auto start                 = std::chrono::steady_clock::now();
+  const size_t features_size = 10;
+  vector features(features_size, 0);
+  Morpheus::Oracle::extract_features<ExecSpace>(mat, features);
+  auto end = std::chrono::steady_clock::now();
+  tuner.timings()[0] =
+      std::chrono::duration_cast<ns>(end - start).count() * 1e-9;
 
+  start = std::chrono::steady_clock::now();
   tuner.tune(features);
+  end = std::chrono::steady_clock::now();
+  tuner.timings()[1] =
+      std::chrono::duration_cast<ns>(end - start).count() * 1e-9;
 }
 
 }  // namespace Impl

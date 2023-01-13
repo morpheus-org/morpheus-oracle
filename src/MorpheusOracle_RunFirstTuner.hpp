@@ -215,8 +215,9 @@ class RunFirstTuner {
       using namespace std;
       cout << "Tuner executed " << repetition_limit() << " repetitions and "
            << "optimized for " << nformats() << " formats!" << endl;
-
-      cout << "\nTuner statistics:" << endl;
+      cout << endl;
+      cout << "Tuner statistics:" << endl;
+      cout << "-----------------" << endl;
       cout << setw(10) << "Format ID\t";
       cout << setw(10) << "tmin\t";
       cout << setw(10) << "tmax\t";

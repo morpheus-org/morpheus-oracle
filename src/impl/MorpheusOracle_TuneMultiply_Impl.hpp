@@ -25,5 +25,7 @@
 #define MORPHEUSORACLE_IMPL_TUNEMULTIPLY_IMPL_HPP
 
 #include <impl/RunFirst/MorpheusOracle_TuneMultiply_Impl.hpp>
+#include <impl/DecisionTree/MorpheusOracle_TuneMultiply_Impl.hpp>
+#include <impl/RandomForest/MorpheusOracle_TuneMultiply_Impl.hpp>
 
 #endif  // MORPHEUSORACLE_TUNEMULTIPLY_HPP
