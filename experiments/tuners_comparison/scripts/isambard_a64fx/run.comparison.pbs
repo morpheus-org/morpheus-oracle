@@ -1,0 +1,44 @@
+#!/bin/bash --login
+
+RUN_PATH=$RUNPATH
+FMAT=$FMAT
+EXE=$EXE
+BACKEND=$BACKEND
+BASE_TUNER=$BASE_TUNER
+TUNED_TUNER=$TUNED_TUNER
+LOW=$LB
+UP=$UB
+
+module use -a /lustre/projects/bristol/modules-a64fx/modulefiles
+module load gcc/10.3.0
+
+export OMP_PROC_BIND=close
+export OMP_PLACES=cores
+if [ "serial" == "$BACKEND" ]; then
+  export OMP_NUM_THREADS=1 
+  NTHREADS=1
+  NGPUS=0
+elif [ "openmp" == "$BACKEND" ]; then
+  export OMP_NUM_THREADS=48 
+  NTHREADS=48
+  NGPUS=0
+fi
+
+EXE_NAME=$(basename $EXE)
+LOG_FILE="$RUN_PATH/$EXE_NAME-$LOW-$UP.log"
+ctr=0
+while IFS= read -r line
+do 
+  if [ $ctr -ge $LOW ] && [ $ctr -lt $UP ]; then
+    MATRIX_NAME=$(basename $line)
+    FMATRIX=$line/$MATRIX_NAME.mtx
+    OUTDIR="$RUN_PATH/matrices/$MATRIX_NAME"
+
+    mkdir -p $OUTDIR
+
+    echo -e "\t$MATRIX"
+    $EXE $FMATRIX $BASE_TUNER $TUNED_TUNER $OUTDIR --kokkos-threads=$NTHREADS --kokkos-num-devices=$NGPUS  2>&1 | tee -a $LOG_FILE
+  fi
+  ctr=$(( $ctr + 1 ))
+done < "$FMAT"
+
