@@ -53,8 +53,8 @@ else
  exit 1
 fi
 
-if [ ! -d "$morpheus_dir" ];then
-  echo "Path to Morpheus Installation ($morpheus_dir) does not exist!"
+if [ ! -d "$morpheus_oracle_dir" ];then
+  echo "Path to Morpheus Installation ($morpheus_oracle_dir) does not exist!"
   exit 1
 fi
 
@@ -98,4 +98,4 @@ sbatch --exclusive --nodes=1 --time=24:00:00 --partition=$queue \
   --qos=$qos $ngpus --account=$ACCOUNT --job-name=tuners_comparison-$queue-build \
   --output=$BUILD_PATH/$queue-report.out \
   --error=$BUILD_PATH/$queue-report.err \
-  $ARCHER2_SCRIPT_PATH/build.comparison.slurm $SCRIPT_PATH $EXPERIMENT_ROOT_DIR $BUILD_PATH $backend $morpheus_oracle_dir $kokkos_dir
+  $SCRIPT_PATH/build.comparison.slurm $SCRIPT_PATH $EXPERIMENT_ROOT_DIR $BUILD_PATH $backend $morpheus_oracle_dir $kokkos_dir
