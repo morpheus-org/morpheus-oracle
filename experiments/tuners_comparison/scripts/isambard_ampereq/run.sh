@@ -83,7 +83,7 @@ while [ $LOW_BOUND -lt $TOTAL_MATRICES ]; do
   qsub -q $queue -l select=1:mem=128gb:ncpus=32:ngpus=1 -l place=excl -l walltime=24:00:00 \
       -o $RUN_PATH/$queue-report-$tuner-$LOW_BOUND-$UPPER_BOUND.out -e $RUN_PATH/$queue-report-$tuner.err \
       -N "tuners_comparison-$tuner-$queue-run" \
-      -v RUNPATH=$RUN_PATH,FMAT=$fmat,EXE=$EXE,BACKEND=$backend,BASE_TUNER=$base_tuner,TUNED_TUNER=$tuned_tuner,LB=$LOW_BOUND,UB=$UPPER_BOUND \
+      -v RUNPATH=$RUN_PATH,FMAT=$fmat,EXE=$EXE,BACKEND=$backend,BASE_TUNER=$base_tuner,TUNED_TUNER=$tuned_tuner,LB=$LOW_BOUND,UB=$UPPER_BOUND,TUNER=$tuner \
       $SCRIPT_PATH/run.comparison.pbs
 
   LOW_BOUND=$(( $LOW_BOUND + $INCREMENT ))

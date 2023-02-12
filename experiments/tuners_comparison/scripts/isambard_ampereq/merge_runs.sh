@@ -54,7 +54,7 @@ mkdir -p $PROCESSED_PATH
 
 
 header=""
-for MATRIX_DIR in $RUN_PATH/*; do 
+for MATRIX_DIR in $RUN_PATH/$tuner/*; do 
   if [ ! -d $MATRIX_DIR ]; then
     continue
   fi

@@ -1,0 +1,6 @@
+# Sizes (NFeatures, Nclasses, NOutputs)
+14	4	1
+# Classes
+0	1	2	5
+# Feature Names
+Nrows	Ncols	Nnnz	AvgNnnz	Density	MaxRowNnnz	MinRowNnnz	StdRowNnnz	NDiags	NTrueDiags	AvgNnnzDia	AvgNnnzELL	AvgNnnzHyb	AvgNnnzHdc

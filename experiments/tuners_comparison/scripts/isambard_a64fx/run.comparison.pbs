@@ -8,6 +8,7 @@ BASE_TUNER=$BASE_TUNER
 TUNED_TUNER=$TUNED_TUNER
 LOW=$LB
 UP=$UB
+TUNER=$TUNER
 
 module use -a /lustre/projects/bristol/modules-a64fx/modulefiles
 module load gcc/10.3.0
@@ -32,7 +33,7 @@ do
   if [ $ctr -ge $LOW ] && [ $ctr -lt $UP ]; then
     MATRIX_NAME=$(basename $line)
     FMATRIX=$line/$MATRIX_NAME.mtx
-    OUTDIR="$RUN_PATH/matrices/$MATRIX_NAME"
+    OUTDIR="$RUN_PATH/matrices/$TUNER/$MATRIX_NAME"
 
     mkdir -p $OUTDIR
 
