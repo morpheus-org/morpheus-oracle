@@ -39,8 +39,8 @@ using Space = Morpheus::Serial;
 
 using backend       = typename Space::backend;
 using DynamicMatrix = Morpheus::DynamicMatrix<double, backend>;
-using Timings_t = Morpheus::DenseVector<double, Morpheus::HostSpace>;
-using ns        = std::chrono::nanoseconds;
+using Timings_t     = Morpheus::DenseVector<double, Morpheus::HostSpace>;
+using ns            = std::chrono::nanoseconds;
 
 int main(int argc, char* argv[]) {
   Morpheus::initialize(argc, argv);
@@ -49,16 +49,19 @@ int main(int argc, char* argv[]) {
       std::stringstream rt_error_msg;
       rt_error_msg << "Benchmark requires 4 runtime input arguments:\n";
       rt_error_msg << "\tfmatrix     : Matrix Market file to be used.\n";
-      rt_error_msg << "\tftree_base  : Baseline Decision Tree file to be used.\n";
+      rt_error_msg
+          << "\tftree_base  : Baseline Decision Tree file to be used.\n";
       rt_error_msg << "\tftree_tuned : Tuned Decision Tree file to be used.\n";
-      rt_error_msg << "\toutdir      : Output Directory to write the timings in.\n";
+      rt_error_msg
+          << "\toutdir      : Output Directory to write the timings in.\n";
       rt_error_msg << " Received " << argc - 1 << " argument(s) !\n ";
 
       std::cout << rt_error_msg.str() << std::endl;
       exit(-1);
     }
 
-    std::string fmatrix = argv[1], ftree_base = argv[2], ftree_tuned = argv[3], outdir = argv[4];
+    std::string fmatrix = argv[1], ftree_base = argv[2], ftree_tuned = argv[3],
+                outdir = argv[4];
 
     std::cout << "\nRunning decision_tree_tuner example with:\n";
     std::cout << "\tMatrix Filename  : " << fmatrix << "\n";
@@ -78,19 +81,21 @@ int main(int argc, char* argv[]) {
     Morpheus::copy(Ah, A);
 
     std::stringstream ss;
-    ss << "Version,Initialization,FeatureExtraction,Inference" << std::endl;
+    ss << "Version,Initialization,FeatureExtraction,Inference,Format"
+       << std::endl;
 
-    double tinit_base=0, tinit_tuned=0;
+    double tinit_base = 0, tinit_tuned = 0;
     // Baseline
-    { 
+    {
       auto start = std::chrono::steady_clock::now();
       Morpheus::Oracle::DecisionTreeTuner tuner(ftree_base, true);
-      auto end = std::chrono::steady_clock::now();
+      auto end   = std::chrono::steady_clock::now();
       tinit_base = std::chrono::duration_cast<ns>(end - start).count() * 1e-9;
 
       Morpheus::Oracle::tune_multiply<backend>(A, tuner);
 
-      ss << "baseline," << tinit_base << "," << tuner.timings()[0] << "," << tuner.timings()[1] << std::endl;
+      ss << "baseline," << tinit_base << "," << tuner.timings()[0] << ","
+         << tuner.timings()[1] << "," << tuner.format_id() << std::endl;
       tuner.print();
     }
 
@@ -98,12 +103,13 @@ int main(int argc, char* argv[]) {
     {
       auto start = std::chrono::steady_clock::now();
       Morpheus::Oracle::DecisionTreeTuner tuner(ftree_tuned, true);
-      auto end = std::chrono::steady_clock::now();
+      auto end    = std::chrono::steady_clock::now();
       tinit_tuned = std::chrono::duration_cast<ns>(end - start).count() * 1e-9;
 
       Morpheus::Oracle::tune_multiply<backend>(A, tuner);
 
-      ss << "tuned," << tinit_tuned << "," << tuner.timings()[0] << "," << tuner.timings()[1] << std::endl;
+      ss << "tuned," << tinit_tuned << "," << tuner.timings()[0] << ","
+         << tuner.timings()[1] << "," << tuner.format_id() << std::endl;
       tuner.print();
     }
 

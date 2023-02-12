@@ -76,7 +76,7 @@ void extract_features(DynamicMatrix& mat, FeatureVector& features) {
   features[7] = Morpheus::std<ExecSpace>(nnz_per_row, nnz_per_row.size(),
                                          Morpheus::average_nnnz(mat));
   features[8] = Morpheus::count_nnz<ExecSpace>(nnz_per_diag);
-  features[9] = Morpheus::count_nnz<ExecSpace>(nnz_per_diag, mat.nrows() / 4);
+  features[9] = Morpheus::count_nnz<ExecSpace>(nnz_per_diag, mat.nrows() / 5);
 }
 
 }  // namespace Oracle
