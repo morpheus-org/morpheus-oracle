@@ -41,4 +41,3 @@ do
   fi
   ctr=$(( $ctr + 1 ))
 done < "$FMAT"
-

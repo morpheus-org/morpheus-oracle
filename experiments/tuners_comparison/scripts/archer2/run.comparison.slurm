@@ -12,17 +12,17 @@ UP=$8
 module load gcc/10.2.0
 
 if [ "serial" == "$BACKEND" ]; then
-  export OMP_NUM_THREADS=18 
-  ncpus="--hint=nomultithread --exclusive --nodes=1 --ntasks=1 --tasks-per-node=1 --cpus-per-task=16"
+  export OMP_NUM_THREADS=16 
+  ncpus="--hint=nomultithread"
   NTHREADS=1
   NGPUS=0
 elif [ "openmp" == "$BACKEND" ]; then
-  export OMP_NUM_THREADS=18 
+  export OMP_NUM_THREADS=16 
   export OMP_PROC_BIND=close
   export OMP_PLACES=cores
-  ncpus="--hint=nomultithread --exclusive --nodes=1 --ntasks=1 --tasks-per-node=1 --cpus-per-task=16"
+  ncpus="--hint=nomultithread"
   ngpus=""
-  NTHREADS=18
+  NTHREADS=16
   NGPUS=0
 fi
 
