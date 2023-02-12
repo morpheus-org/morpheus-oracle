@@ -37,7 +37,7 @@ do
     mkdir -p $OUTDIR
 
     echo -e "\t$MATRIX"
-    $EXE $FMATRIX $BASE_TUNER $TUNED_TUNER $OUTDIR --kokkos-threads=$NTHREADS --kokkos-num-devices=$NGPUS  2>&1 | tee -a $LOG_FILE
+    aprun -N 1 -d $NTHREADS $EXE $FMATRIX $BASE_TUNER $TUNED_TUNER $OUTDIR --kokkos-threads=$NTHREADS --kokkos-num-devices=$NGPUS  2>&1 | tee -a $LOG_FILE
   fi
   ctr=$(( $ctr + 1 ))
 done < "$FMAT"
