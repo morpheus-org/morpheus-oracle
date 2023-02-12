@@ -43,7 +43,7 @@ base_tuner=$4
 tuned_tuner=$5
 budget=$6
 queue="standard"
-qos="lowpriority"
+qos="standard"
 
 if [ "serial" == "$backend" ]; then
   queue="standard"
@@ -73,6 +73,12 @@ else
  echo "Invalid tuner name ($tuner)!"
  echo -e "\tAvailable tuners: [dt | rf]"
  exit 1
+fi
+
+if [ -z "$6" ]; then
+  ACCOUNT=e609
+else
+  ACCOUNT=$budget
 fi
 
 RUN_PATH=$SCRIPT_PATH/run/$backend
