@@ -54,8 +54,8 @@ EXP=archer2-square_set-serial-1000
 DATA_PATH=/work/e609/e609/cstyl/morpheus-oracle/experiments/data
 FMAT=$DATA_PATH/test_lists/list-matrices-$EXP.txt
 TUNER=rf
-BASELINE=$DATA_PATH/trees/extract_clf/$EXP/10/baseline
-TUNED=$DATA_PATH/trees/extract_clf/$EXP/10/tuned
+BASELINE=$DATA_PATH/forests/extract_clf/$EXP/10/baseline
+TUNED=$DATA_PATH/forests/extract_clf/$EXP/10/tuned
 
 ./run.sh $BACKEND $FMAT $TUNER $BASELINE $TUNED $BUDGET
 ```
@@ -67,9 +67,8 @@ EXP=archer2-square_set-openmp-1000
 DATA_PATH=/work/e609/e609/cstyl/morpheus-oracle/experiments/data
 FMAT=$DATA_PATH/test_lists/list-matrices-$EXP.txt
 TUNER=rf
-BASELINE=$DATA_PATH/trees/extract_clf/$EXP/10/baseline
-TUNED=$DATA_PATH/trees/extract_clf/$EXP/10/tuned
+BASELINE=$DATA_PATH/forests/extract_clf/$EXP/10/baseline
+TUNED=$DATA_PATH/forests/extract_clf/$EXP/10/tuned
 
 ./run.sh $BACKEND $FMAT $TUNER $BASELINE $TUNED $BUDGET
 ```
-
