@@ -2,7 +2,7 @@
 ## GPU
 1. To start an Interactive Job:
 ```sh
-qsub -I -q instinctq -l select=1:ncpus=32 -l place=excl
+qsub -I -q instinctq -l select=1:mem=128gb:ncpus=32 -l place=excl
 ```
 *WARNING:* that compilation for the AMD GPUS can only be done on the login nodes of P3 system.
 

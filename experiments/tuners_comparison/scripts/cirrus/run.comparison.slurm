@@ -8,6 +8,7 @@ BASE_TUNER=$5
 TUNED_TUNER=$6
 LOW=$7
 UP=$8
+TUNER=$9
 
 module load gcc/10.2.0
 
@@ -43,7 +44,7 @@ do
   if [ $ctr -ge $LOW ] && [ $ctr -lt $UP ]; then
     MATRIX_NAME=$(basename $line)
     FMATRIX=$line/$MATRIX_NAME.mtx
-    OUTDIR="$RUN_PATH/matrices/$MATRIX_NAME"
+    OUTDIR="$RUN_PATH/matrices/$TUNER/$MATRIX_NAME"
 
     mkdir -p $OUTDIR
 

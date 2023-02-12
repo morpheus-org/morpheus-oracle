@@ -100,7 +100,7 @@ while [ $LOW_BOUND -lt $TOTAL_MATRICES ]; do
     --qos=$qos $ncpus $ngpus --account=$ACCOUNT --job-name=tuners_comparison-$tuner-$backend-run \
     --output=$RUN_PATH/$queue-$tuner-$LOW_BOUND-$UPPER_BOUND-report.out \
     --error=$RUN_PATH/$queue-$tuner-$LOW_BOUND-$UPPER_BOUND-report.err \
-    $SCRIPT_PATH/run.comparison.slurm $RUN_PATH $fmat $EXE $backend $base_tuner $tuned_tuner $LOW_BOUND $UPPER_BOUND
+    $SCRIPT_PATH/run.comparison.slurm $RUN_PATH $fmat $EXE $backend $base_tuner $tuned_tuner $LOW_BOUND $UPPER_BOUND $tuner
 
 
   LOW_BOUND=$(( $LOW_BOUND + $INCREMENT ))
