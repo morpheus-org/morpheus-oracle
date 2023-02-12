@@ -12,7 +12,7 @@ TUNER=$TUNER
 
 module load gcc/10.3.0
 
-export OMP_PROC_BIND=close
+export OMP_PROC_BIND=false
 export OMP_PLACES=cores
 if [ "serial" == "$BACKEND" ]; then
   export OMP_NUM_THREADS=1 
@@ -37,7 +37,8 @@ do
     mkdir -p $OUTDIR
 
     echo -e "\t$MATRIX"
-    aprun -N 1 -d $NTHREADS $EXE $FMATRIX $BASE_TUNER $TUNED_TUNER $OUTDIR --kokkos-threads=$NTHREADS --kokkos-num-devices=$NGPUS  2>&1 | tee -a $LOG_FILE
+    # aprun -N 1 -d $NTHREADS $EXE $FMATRIX $BASE_TUNER $TUNED_TUNER $OUTDIR --kokkos-threads=$NTHREADS --kokkos-num-devices=$NGPUS  2>&1 | tee -a $LOG_FILE
+    $EXE $FMATRIX $BASE_TUNER $TUNED_TUNER $OUTDIR --kokkos-threads=$NTHREADS --kokkos-num-devices=$NGPUS  2>&1 | tee -a $LOG_FILE
   fi
   ctr=$(( $ctr + 1 ))
 done < "$FMAT"
