@@ -27,7 +27,7 @@ SCRIPT_PATH="$(
 
 if [ "$#" -lt "3" ]; then
   echo -e "Script requires 3 runtime arguments to run."
-  echo -e "\t\$1 : Backend [hip]"
+  echo -e "\t\$1 : Backend [serial | openmp | cuda]"
   echo -e "\t\$2 : Tuner [dt | rf]"
   echo -e "\t\$3 : Results Path"
   exit 0
@@ -37,9 +37,9 @@ backend=$1
 tuner=$2
 RUN_PATH=$3
 
-if [ "hip" != "$backend" ]; then
+if [ "serial" != "$backend" ] && [ "openmp" != "$backend" ] && [ "cuda" != "$backend" ]; then
   echo "Invalid backend ($backend)!"
-  echo -e "\tAvailable backends: [hip]"
+  echo -e "\tAvailable backends: [serial | openmp | cuda]"
   exit 1
 fi
 
@@ -71,4 +71,3 @@ for MATRIX_DIR in $RUN_PATH/$tuner/*; do
     echo "$entry" >> $OUTFILE
   done
 done
-
