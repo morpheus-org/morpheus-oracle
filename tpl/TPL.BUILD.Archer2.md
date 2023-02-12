@@ -17,6 +17,9 @@ KOKKOS_INSTALL_DIR=$WORK_DIR/kokkos/installs/gnu-10.2-off-on
 MORPHEUS_ROOT_DIR=$WORK_DIR/morpheus
 MORPHEUS_BUILD_DIR=$WORK_DIR/morpheus/builds/gnu-10.2-off-on
 MORPHEUS_INSTALL_DIR=$WORK_DIR/morpheus/installs/gnu-10.2-off-on
+MORPHEUSORACLE_ROOT_DIR=$WORK_DIR/morpheus-oracle
+MORPHEUSORACLE_BUILD_DIR=$WORK_DIR/morpheus-oracle/builds/gnu-10.2-off-on
+MORPHEUSORACLE_INSTALL_DIR=$WORK_DIR/morpheus-oracle/installs/gnu-10.2-off-on
 
 export CRAYPE_LINK_TYPE=dynamic
 ```
@@ -49,6 +52,17 @@ cmake $MORPHEUS_ROOT_DIR -DCMAKE_CXX_COMPILER=${CXX_COMPILER} \
                          -DMorpheus_ENABLE_TESTS=OFF && make -j && make install
 ```
 
+## Morpheus-Oracle
+``` sh
+rm -rf $MORPHEUSORACLE_BUILD_DIR && mkdir -p $MORPHEUSORACLE_BUILD_DIR && cd $MORPHEUSORACLE_BUILD_DIR
+cmake $MORPHEUSORACLE_ROOT_DIR -DCMAKE_CXX_COMPILER=${CXX_COMPILER} \
+                         -DCMAKE_INSTALL_PREFIX=${MORPHEUSORACLE_INSTALL_DIR} \
+                         -DCMAKE_BUILD_TYPE=Release \
+                         -DMorpheus_ROOT=${MORPHEUS_INSTALL_DIR} \
+                         -DMorpheusOracle_ENABLE_EXAMPLES=OFF \
+                         -DMorpheusOracle_ENABLE_TESTS=OFF && make -j && make install
+```
+
 # OPENMP
 1. Start an Interactive Job:
 ```sh
@@ -68,6 +82,9 @@ KOKKOS_INSTALL_DIR=$WORK_DIR/kokkos/installs/gnu-10.2-on-on
 MORPHEUS_ROOT_DIR=$WORK_DIR/morpheus
 MORPHEUS_BUILD_DIR=$WORK_DIR/morpheus/builds/gnu-10.2-on-on
 MORPHEUS_INSTALL_DIR=$WORK_DIR/morpheus/installs/gnu-10.2-on-on
+MORPHEUSORACLE_ROOT_DIR=$WORK_DIR/morpheus-oracle
+MORPHEUSORACLE_BUILD_DIR=$WORK_DIR/morpheus-oracle/builds/gnu-10.2-on-on
+MORPHEUSORACLE_INSTALL_DIR=$WORK_DIR/morpheus-oracle/installs/gnu-10.2-on-on
 
 export CRAYPE_LINK_TYPE=dynamic
 ```
@@ -97,4 +114,15 @@ cmake $MORPHEUS_ROOT_DIR -DCMAKE_CXX_COMPILER=${CXX_COMPILER} \
                          -DKokkos_ROOT=${KOKKOS_INSTALL_DIR} \
                          -DMorpheus_ENABLE_EXAMPLES=OFF \
                          -DMorpheus_ENABLE_TESTS=OFF && make -j && make install
+```
+
+## Morpheus-Oracle
+``` sh
+rm -rf $MORPHEUSORACLE_BUILD_DIR && mkdir -p $MORPHEUSORACLE_BUILD_DIR && cd $MORPHEUSORACLE_BUILD_DIR
+cmake $MORPHEUSORACLE_ROOT_DIR -DCMAKE_CXX_COMPILER=${CXX_COMPILER} \
+                         -DCMAKE_INSTALL_PREFIX=${MORPHEUSORACLE_INSTALL_DIR} \
+                         -DCMAKE_BUILD_TYPE=Release \
+                         -DMorpheus_ROOT=${MORPHEUS_INSTALL_DIR} \
+                         -DMorpheusOracle_ENABLE_EXAMPLES=OFF \
+                         -DMorpheusOracle_ENABLE_TESTS=OFF && make -j && make install
 ```

@@ -73,6 +73,12 @@ else
  exit 1
 fi
 
+if [ -z "$6" ]; then
+  ACCOUNT=e609
+else
+  ACCOUNT=$budget
+fi
+
 RUN_PATH=$SCRIPT_PATH/run/$backend
 EXE=$SCRIPT_PATH/build/$backend/tuners_comparison/src/$EXE_NAME
 
@@ -89,7 +95,7 @@ echo -e "\tQueue   : $queue"
 mkdir -p $RUN_PATH
 
 TOTAL_MATRICES=$(( $(wc -l < $fmat) - 1 ))
-INCREMENT=$(( $TOTAL_MATRICES / 15 ))
+INCREMENT=$(( $TOTAL_MATRICES / 31 ))
 LOW_BOUND=0
 UPPER_BOUND=$(( $LOW_BOUND + $INCREMENT ))
 
@@ -98,7 +104,7 @@ while [ $LOW_BOUND -lt $TOTAL_MATRICES ]; do
     --qos=$qos $ncpus $ngpus --account=$ACCOUNT --job-name=tuners_comparison-$tuner-$backend-run \
     --output=$RUN_PATH/$queue-$tuner-$LOW_BOUND-$UPPER_BOUND-report.out \
     --error=$RUN_PATH/$queue-$tuner-$LOW_BOUND-$UPPER_BOUND-report.err \
-    $ARCHER2_SCRIPT_PATH/run.comparison.slurm $fmat $EXE $backend $base_tuner $tuned_tuner $LOW_BOUND $UPPER_BOUND
+    $SCRIPT_PATH/run.comparison.slurm $RUN_PATH $fmat $EXE $backend $base_tuner $tuned_tuner $LOW_BOUND $UPPER_BOUND
 
 
   LOW_BOUND=$(( $LOW_BOUND + $INCREMENT ))
