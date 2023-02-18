@@ -51,7 +51,7 @@ void load_tree(const std::string& filename, Tree& tree,
   std::vector<std::string> tokens;
   std::string line;
   std::getline(file, line);
-  Impl::tokenize(tokens, line);
+  Morpheus::IO::Impl::tokenize(tokens, line);
 
   size_t nfeatures, nclasses, nodecount, maxdepth;
   std::istringstream(tokens[0]) >> nfeatures;
@@ -100,7 +100,7 @@ void load_forest(
     std::vector<std::string> tokens;
     std::string line;
     std::getline(file, line);
-    Impl::tokenize(tokens, line);
+    Morpheus::IO::Impl::tokenize(tokens, line);
 
     size_t nfeatures, nclasses, noutputs;
     std::istringstream(tokens[0]) >> nfeatures;

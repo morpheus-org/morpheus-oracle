@@ -36,22 +36,22 @@ namespace Morpheus {
 namespace Oracle {
 namespace Impl {
 
-void tokenize(std::vector<std::string>& tokens, const std::string& str,
-              const std::string& delimiters = "\n\r\t ") {
-  // Skip delimiters at beginning.
-  std::string::size_type lastPos = str.find_first_not_of(delimiters, 0);
-  // Find first "non-delimiter".
-  std::string::size_type pos = str.find_first_of(delimiters, lastPos);
+// void tokenize(std::vector<std::string>& tokens, const std::string& str,
+//               const std::string& delimiters = "\n\r\t ") {
+//   // Skip delimiters at beginning.
+//   std::string::size_type lastPos = str.find_first_not_of(delimiters, 0);
+//   // Find first "non-delimiter".
+//   std::string::size_type pos = str.find_first_of(delimiters, lastPos);
 
-  while (std::string::npos != pos || std::string::npos != lastPos) {
-    // Found a token, add it to the vector.
-    tokens.push_back(str.substr(lastPos, pos - lastPos));
-    // Skip delimiters.  Note the "not_of"
-    lastPos = str.find_first_not_of(delimiters, pos);
-    // Find next "non-delimiter"
-    pos = str.find_first_of(delimiters, lastPos);
-  }
-}
+//   while (std::string::npos != pos || std::string::npos != lastPos) {
+//     // Found a token, add it to the vector.
+//     tokens.push_back(str.substr(lastPos, pos - lastPos));
+//     // Skip delimiters.  Note the "not_of"
+//     lastPos = str.find_first_not_of(delimiters, pos);
+//     // Find next "non-delimiter"
+//     pos = str.find_first_of(delimiters, lastPos);
+//   }
+// }
 
 template <typename Stream>
 void skip_comment(Stream& input, const std::string delimiter = "#") {
@@ -78,7 +78,7 @@ void load_array(std::vector<std::string>& vec, Stream& input,
   std::getline(input, line);
 
   std::vector<std::string> tokens;
-  tokenize(tokens, line);
+  Morpheus::IO::Impl::tokenize(tokens, line);
 
   if (tokens.size() != vec.size()) {
     throw Morpheus::IOException("Entries (" + std::to_string(tokens.size()) +
@@ -107,7 +107,7 @@ void load_array(Vector& vec, Stream& input, bool skip_comments = true,
   std::getline(input, line);
 
   std::vector<std::string> tokens;
-  tokenize(tokens, line);
+  Morpheus::IO::Impl::tokenize(tokens, line);
 
   if (tokens.size() != vec.size()) {
     throw Morpheus::IOException("Entries (" + std::to_string(tokens.size()) +
@@ -138,7 +138,7 @@ void load_array(Matrix& mat, Stream& input, bool skip_comments = true,
     std::getline(input, line);
 
     std::vector<std::string> tokens;
-    tokenize(tokens, line);
+    Morpheus::IO::Impl::tokenize(tokens, line);
 
     if (tokens.size() != mat.ncols()) {
       throw Morpheus::IOException("Entries (" + std::to_string(tokens.size()) +
