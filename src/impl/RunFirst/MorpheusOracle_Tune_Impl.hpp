@@ -65,7 +65,6 @@ void tune(
     if (status == Morpheus::CONV_SUCCESS) {
       auto start = std::chrono::steady_clock::now();
       f(mat_mirror, true);
-      // Morpheus::multiply<ExecSpace>(mat_mirror, x, y, true);
       auto end = std::chrono::steady_clock::now();
 
       runtime = std::chrono::duration_cast<ns>(end - start).count() * 1e-9;

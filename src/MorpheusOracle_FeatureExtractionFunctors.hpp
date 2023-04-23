@@ -51,12 +51,12 @@ template <typename ExecSpace>
 struct ExtractFeaturesFunctor {
   template <typename Matrix, typename FeatureVector>
   void operator()(
-      const Matrix& mat, FeatureVector& features/*,
+      const Matrix& mat, FeatureVector& features,
       typename std::enable_if_t<
           Morpheus::is_dynamic_matrix_container_v<Matrix> &&
           Morpheus::is_dense_vector_format_container_v<FeatureVector> &&
           Morpheus::has_access_v<ExecSpace, Matrix, FeatureVector>>* =
-          nullptr*/) {
+          nullptr) {
     static_assert(
         std::is_floating_point_v<typename FeatureVector::value_type>,
         "The value_type of the FeatureVector must be a floating-point "

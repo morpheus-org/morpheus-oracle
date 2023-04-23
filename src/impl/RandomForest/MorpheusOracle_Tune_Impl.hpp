@@ -42,7 +42,6 @@ void tune(const Matrix& mat, FeaturesFunctor& f, Tuner& tuner,
   auto start = std::chrono::steady_clock::now();
   vector features;
   f(mat, features);
-  // Morpheus::Oracle::extract_features<ExecSpace>(mat, features);
   auto end = std::chrono::steady_clock::now();
   tuner.timings()[0] =
       std::chrono::duration_cast<ns>(end - start).count() * 1e-9;
