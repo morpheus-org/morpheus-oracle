@@ -33,7 +33,6 @@
 
 // Operations
 #include <MorpheusOracle_FeatureExtraction.hpp>
-#include <MorpheusOracle_TuneMultiply.hpp>
 #include <MorpheusOracle_Tune.hpp>
 
 // Functors
