@@ -1,5 +1,5 @@
 /**
- * Morpheus_Oracle.hpp
+ * MorpheusOracle_Tune_Impl.hpp
  *
  * EPCC, The University of Edinburgh
  *
@@ -21,30 +21,11 @@
  * limitations under the License.
  */
 
-#ifndef MORPHEUS_ORACLE_HPP
-#define MORPHEUS_ORACLE_HPP
+#ifndef MORPHEUSORACLE_IMPL_TUNE_IMPL_HPP
+#define MORPHEUSORACLE_IMPL_TUNE_IMPL_HPP
 
-#include <Morpheus_Core.hpp>
+#include <impl/RunFirst/MorpheusOracle_Tune_Impl.hpp>
+#include <impl/DecisionTree/MorpheusOracle_Tune_Impl.hpp>
+#include <impl/RandomForest/MorpheusOracle_Tune_Impl.hpp>
 
-// Tuners
-#include <MorpheusOracle_RunFirstTuner.hpp>
-#include <MorpheusOracle_DecisionTreeTuner.hpp>
-#include <MorpheusOracle_RandomForestTuner.hpp>
-
-// Operations
-#include <MorpheusOracle_FeatureExtraction.hpp>
-#include <MorpheusOracle_TuneMultiply.hpp>
-#include <MorpheusOracle_Tune.hpp>
-
-// Functors
-#include <MorpheusOracle_RunFirstFunctors.hpp>
-#include <MorpheusOracle_FeatureExtractionFunctors.hpp>
-
-// Utils
-#include <MorpheusOracle_Macros.hpp>
-#include <MorpheusOracle_TypeTraits.hpp>
-
-// IO
-#include <MorpheusOracle_Loader.hpp>
-
-#endif  // MORPHEUS_ORACLE_HPP
+#endif  // MORPHEUSORACLE_TUNE_HPP

@@ -21,14 +21,15 @@
  * limitations under the License.
  */
 
-#ifndef TEST_ORACLE_TEST_TUNEMULTIPLY_HPP
-#define TEST_ORACLE_TEST_TUNEMULTIPLY_HPP
+#ifndef TEST_ORACLE_TEST_TUNE_RUNFIRST_HPP
+#define TEST_ORACLE_TEST_TUNE_RUNFIRST_HPP
 
 #include <Morpheus_Oracle.hpp>
 
 TEST(TuneMultiply, RunFirstTuner) {
   using backend       = typename TEST_CUSTOM_EXECSPACE::backend;
   using DynamicMatrix = Morpheus::DynamicMatrix<double, backend>;
+  using Vector        = Morpheus::DenseVector<double, backend>;
   using CsrMatrix     = Morpheus::CsrMatrix<double, backend>;
 
   Morpheus::Oracle::RunFirstTuner tuner(10, false);
@@ -60,12 +61,14 @@ TEST(TuneMultiply, RunFirstTuner) {
 
   A = Acsr;
 
-  Morpheus::Oracle::tune_multiply<TEST_CUSTOM_EXECSPACE>(A, tuner);
+  Morpheus::Oracle::RunFirstMultiplyFunctor<backend, Vector> f(A.nrows(),
+                                                               A.ncols());
+  Morpheus::Oracle::tune(A, f, tuner);
 
   EXPECT_TRUE(tuner.finished());
   // Check average timings were recorded
   for (size_t i = 0; i < tuner.avg_timings().size(); i++) {
-    EXPECT_NE(tuner.avg_timings()(i), 0);
+    EXPECT_GE(tuner.avg_timings()(i), 0.0);
   }
 
   // Figure out which format was the best on average
@@ -81,4 +84,4 @@ TEST(TuneMultiply, RunFirstTuner) {
   EXPECT_EQ(best_format_id, tuner.format_id());
 }
 
-#endif  // TEST_ORACLE_TEST_TUNEMULTIPLY_HPP
+#endif  // TEST_ORACLE_TEST_TUNE_RUNFIRST_HPP

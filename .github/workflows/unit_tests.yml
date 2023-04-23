@@ -87,11 +87,11 @@ jobs:
 
           sudo cmake --build . --target install --parallel 2
 
-      - name: Checkout Morpheus-v0.5.00
+      - name: Checkout Morpheus (develop)
         uses: actions/checkout@v3
         with:
           repository: morpheus-org/morpheus
-          ref: master
+          ref: develop
           path: morpheus
 
       - name: Installing Morpheus

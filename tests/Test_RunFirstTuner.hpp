@@ -113,7 +113,7 @@ TEST(RunFirstTunerTest, Construction) {
 TEST(RunFirstTunerTest, Step) {
   Morpheus::Oracle::RunFirstTuner tuner;
 
-  for (size_t fmt = 0; fmt < tuner.nformats(); fmt++) {
+  for (int fmt = 0; fmt < tuner.nformats(); fmt++) {
     for (size_t rep = 0; rep < tuner.repetition_limit(); rep++) {
       EXPECT_EQ(tuner.format_count(), fmt);
       EXPECT_EQ(tuner.repetition_count(), rep);
@@ -127,7 +127,7 @@ TEST(RunFirstTunerTest, Step) {
 TEST(RunFirstTunerTest, Finish) {
   Morpheus::Oracle::RunFirstTuner tuner;
 
-  for (size_t fmt = 0; fmt < tuner.nformats(); fmt++) {
+  for (int fmt = 0; fmt < tuner.nformats(); fmt++) {
     for (size_t rep = 0; rep < tuner.repetition_limit(); rep++) {
       EXPECT_FALSE(tuner.finished());
       ++tuner;
@@ -141,7 +141,7 @@ TEST(RunFirstTunerTest, Finish) {
 TEST(RunFirstTunerTest, RegisterRun) {
   Morpheus::Oracle::RunFirstTuner tuner;
 
-  for (size_t fmt = 0; fmt < tuner.nformats(); fmt++) {
+  for (int fmt = 0; fmt < tuner.nformats(); fmt++) {
     for (size_t rep = 0; rep < tuner.repetition_limit(); rep++) {
       double rt = tuner.repetition_count() + tuner.format_count();
       tuner.register_run(rt);
@@ -149,7 +149,7 @@ TEST(RunFirstTunerTest, RegisterRun) {
     }
   }
 
-  for (size_t fmt = 0; fmt < tuner.nformats(); fmt++) {
+  for (int fmt = 0; fmt < tuner.nformats(); fmt++) {
     for (size_t rep = 0; rep < tuner.repetition_limit(); rep++) {
       EXPECT_EQ(tuner.timings()(fmt, rep), rep + fmt);
     }
@@ -171,7 +171,7 @@ TEST(RunFirstTunerTest, FinishStats) {
     repsum += i;
   }
 
-  for (size_t fmt = 0; fmt < tuner.nformats(); fmt++) {
+  for (int fmt = 0; fmt < tuner.nformats(); fmt++) {
     EXPECT_EQ(tuner.min_timings()(fmt), fmt);
     EXPECT_EQ(tuner.max_timings()(fmt), (tuner.repetition_limit() - 1) + fmt);
     EXPECT_EQ(
@@ -213,9 +213,9 @@ TEST(RunFirstTunerTest, Reset) {
   EXPECT_EQ(tuner.avg_timings().size(), nfmts);
   // Check values of each timing vector
   for (auto i = 0; i < nfmts; i++) {
-    EXPECT_EQ(tuner.max_timings()(i), 0);
-    EXPECT_EQ(tuner.min_timings()(i), 0);
-    EXPECT_EQ(tuner.avg_timings()(i), 0);
+    EXPECT_EQ(tuner.max_timings()(i), -std::numeric_limits<double>::max());
+    EXPECT_EQ(tuner.min_timings()(i), -std::numeric_limits<double>::max());
+    EXPECT_EQ(tuner.avg_timings()(i), -std::numeric_limits<double>::max());
   }
 
   EXPECT_EQ(tuner.format_id(),
