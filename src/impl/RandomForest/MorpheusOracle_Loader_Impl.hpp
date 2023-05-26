@@ -37,14 +37,78 @@ namespace Morpheus {
 namespace Oracle {
 namespace Impl {
 
-// template <typename Tree>
-// void load_binary(
-//     std::ifstream& sforest, Tree& forest, const bool feature_names = true,
-//     typename std::enable_if_t<is_random_forest_v<Tree>>* = nullptr) {}
 template <typename Tree>
 void load_binary(
-    std::ifstream&, Tree&, bool,
-    typename std::enable_if_t<is_random_forest_v<Tree>>* = nullptr) {}
+    std::ifstream& sforest, Tree& forest, const bool feature_names = true,
+    typename std::enable_if_t<is_random_forest_v<Tree>>* = nullptr) {
+  const size_t integral_size = sizeof(int);
+  const size_t char_size     = sizeof(char);
+
+  std::vector<char> memblock(4 * integral_size);
+  sforest.read(memblock.data(), 4 * integral_size);
+
+  char* ptr     = memblock.data();
+  int* int_data = (int*)(memblock.data());
+  forest.set_nfeatures(int_data[0]);
+  forest.set_nclasses(int_data[1]);
+  forest.set_noutputs(int_data[2]);
+  forest.set_nestimators(int_data[3]);
+
+  /* Read Estimator Sizes */
+  forest.estimator_sizes().resize(forest.nestimators(), 0);
+  memblock.resize(forest.nestimators() * integral_size);
+  ptr = memblock.data();
+  sforest.read(memblock.data(), forest.nestimators() * integral_size);
+  for (size_t i = 0; i < forest.nestimators(); ++i) {
+    forest.estimator_sizes(i) = *((int*)ptr);
+    ptr += integral_size;
+  }
+
+  /* Read Classes */
+  forest.classes().resize(forest.nclasses(), 0);
+  memblock.resize(forest.nclasses() * integral_size);
+  ptr = memblock.data();
+  sforest.read(memblock.data(), forest.nclasses() * integral_size);
+  for (size_t i = 0; i < forest.nclasses(); ++i) {
+    forest.classes(i) = *((int*)ptr);
+    ptr += integral_size;
+  }
+
+  if (feature_names) {
+    /* Read Feature Names Sizes */
+    forest.feature_names_sizes().resize(forest.nfeatures(), 0);
+    memblock.resize(forest.nfeatures() * integral_size);
+    ptr = memblock.data();
+    sforest.read(memblock.data(), forest.nfeatures() * integral_size);
+    for (size_t i = 0; i < forest.nfeatures(); ++i) {
+      forest.feature_names_sizes(i) = *((int*)ptr);
+      ptr += integral_size;
+    }
+
+    /* Read Feature Name */
+    auto total_chars = std::accumulate(forest.feature_names_sizes().data(),
+                                       forest.feature_names_sizes().data() +
+                                           forest.feature_names_sizes().size(),
+                                       0);
+    forest.feature_names().resize(forest.nfeatures());
+    memblock.resize(total_chars * char_size);
+    ptr = memblock.data();
+    sforest.read(memblock.data(), total_chars * char_size);
+    std::string strblock = memblock.data();
+    size_t pos           = 0;
+    for (size_t i = 0; i < forest.nfeatures(); ++i) {
+      forest.feature_names(i) =
+          strblock.substr(pos, forest.feature_names_sizes(i));
+      pos += forest.feature_names_sizes(i) * char_size;
+    }
+  }
+
+  /* Load each tree */
+  forest.estimators().resize(forest.nestimators());
+  for (size_t i = 0; i < forest.nestimators(); i++) {
+    Impl::load_binary(sforest, forest.estimators(i), false);
+  }
+}
 
 template <typename Tree>
 void load_text(std::ifstream& sforest, Tree& forest,

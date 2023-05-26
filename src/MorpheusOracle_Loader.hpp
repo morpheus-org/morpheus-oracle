@@ -53,7 +53,13 @@ void load(std::ifstream& stree, Tree& tree, const bool binary = true,
 template <typename Tree>
 void load(const std::string& ftree, Tree& tree, const bool binary = true,
           const bool feature_names = true) {
-  std::ifstream file(ftree.c_str());
+  auto mode = binary ? std::ios::in | std::ios::binary : std::ios::in;
+  std::ifstream file(ftree.c_str(), mode);
+  if (!file.is_open()) {
+    throw std::runtime_error("Could not open file at: " + ftree);
+  }
+  file.seekg(0, std::ios::beg);
+
   load(file, tree, binary, feature_names);
 }
 

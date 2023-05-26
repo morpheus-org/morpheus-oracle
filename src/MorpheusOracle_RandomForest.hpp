@@ -178,7 +178,7 @@ class RandomForest {
   void set_noutputs(const size_t noutputs) { noutputs_ = noutputs; }
   void set_nestimators(const size_t nestimators) { nestimators_ = nestimators; }
 
-  index_type& cestimator_sizes(size_t i) { return estimator_sizes_[i]; }
+  index_type& estimator_sizes(size_t i) { return estimator_sizes_[i]; }
   index_type& classes(size_t i) { return classes_[i]; }
   tree_type& estimators(size_t i) { return estimators_[i]; }
   index_type& feature_names_sizes(size_t i) { return feature_names_sizes_[i]; }
