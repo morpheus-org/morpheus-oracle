@@ -54,16 +54,15 @@ class RandomForestTuner {
         format_id_(INVALID_FORMAT_STATE),
         verbose_(verbose) {}
 
-  RandomForestTuner(const std::string& fmetadata,
-                    const std::vector<std::string>& ftrees,
-                    bool verbose = false) {
-    reload(fmetadata, ftrees);
+  RandomForestTuner(const std::string& filename, const bool binary = true,
+                    const bool feature_names = true, bool verbose = false) {
+    reload(filename, binary, feature_names);
     verbose_ = verbose;
   }
 
-  void reload(const std::string& fmetadata,
-              const std::vector<std::string>& ftrees) {
-    forest_.load_forest(fmetadata, ftrees);
+  void reload(const std::string& filename, const bool binary = true,
+              const bool feature_names = true) {
+    forest_.load_forest(filename, binary, feature_names);
     reset();
   }
 
@@ -87,21 +86,17 @@ class RandomForestTuner {
   void print() {
     using namespace std;
     cout << "Tuner executed using a RandomForest loaded from: "
-         << forest_.meatadata_filename() << endl;
+         << forest_.filename() << endl;
     cout << endl;
     if (is_verbose()) {
-      cout << "Trees were loaded from:" << endl;
-      std::vector<std::string> tree_filenames = forest_.ctree_filenames();
-      for (size_t i = 0; i < tree_filenames.size(); i++) {
-        cout << "\tTree [" << i << "]: " << tree_filenames[i] << endl;
-      }
-
       cout << endl;
       cout << "Metadata:" << endl;
       cout << "---------" << endl;
       cout << setw(25) << "Number of Features: " << forest_.nfeatures() << endl;
       cout << setw(25) << "Number of Classes: " << forest_.nclasses() << endl;
       cout << setw(25) << "Number of Outputs: " << forest_.noutputs() << endl;
+      cout << setw(25) << "Number of Estimators: " << forest_.nestimators()
+           << endl;
 
       cout << setw(25) << "Classes: ";
       for (size_t i = 0; i < forest_.cclasses().size(); i++) {

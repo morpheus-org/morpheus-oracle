@@ -1,0 +1,39 @@
+#!/bin/bash --login
+
+RUN_PATH=$RUNPATH
+FMAT=$FMAT
+EXE=$EXE
+BACKEND=$BACKEND
+BASE_TUNER=$BASE_TUNER
+TUNED_TUNER=$TUNED_TUNER
+LOW=$LB
+UP=$UB
+TUNER=$TUNER
+
+module use /software/x86/tools/nvidia/hpc_sdk/modulefiles
+module load nvhpc/22.9 gcc/10.3.0
+
+export OMP_PROC_BIND=close
+export OMP_PLACES=cores
+export OMP_NUM_THREADS=1 
+NTHREADS=1
+NGPUS=1
+
+EXE_NAME=$(basename $EXE)
+LOG_FILE="$RUN_PATH/$EXE_NAME-$LOW-$UP.log"
+ctr=0
+while IFS= read -r line
+do 
+  if [ $ctr -ge $LOW ] && [ $ctr -lt $UP ]; then
+    MATRIX_NAME=$(basename $line)
+    FMATRIX=$line/$MATRIX_NAME.mtx
+    OUTDIR="$RUN_PATH/matrices/$TUNER/$MATRIX_NAME"
+
+    mkdir -p $OUTDIR
+
+    echo -e "\t$MATRIX"
+    $EXE $FMATRIX $BASE_TUNER $TUNED_TUNER $OUTDIR --kokkos-threads=$NTHREADS --kokkos-num-devices=$NGPUS  2>&1 | tee -a $LOG_FILE
+  fi
+  ctr=$(( $ctr + 1 ))
+done < "$FMAT"
+

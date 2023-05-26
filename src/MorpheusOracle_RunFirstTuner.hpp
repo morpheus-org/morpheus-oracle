@@ -193,9 +193,9 @@ class RunFirstTuner {
     rep_count_    = 0;
     verbose_      = false;
     timings_.assign(nformats_, rep_limit_, 0);
-    max_timings_.assign(nformats_, 0);
-    avg_timings_.assign(nformats_, 0);
-    min_timings_.assign(nformats_, 0);
+    max_timings_.assign(nformats_, -std::numeric_limits<double>::max());
+    avg_timings_.assign(nformats_, -std::numeric_limits<double>::max());
+    min_timings_.assign(nformats_, -std::numeric_limits<double>::max());
   }
 
   /**
@@ -365,7 +365,7 @@ class RunFirstTuner {
       for (size_t j = 0; j < rep_limit_; j++) {
         sumt += timings_(i, j);
       }
-      avg_timings_(i) = sumt / rep_limit_;
+      avg_timings_(i) = sumt / (double)rep_limit_;
     }
   }
 

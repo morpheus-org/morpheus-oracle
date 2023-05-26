@@ -1,10 +1,9 @@
 morpheusoracle_configure_file(MorpheusOracle_config.hpp)
 
-morpheusoracle_include_directories(${CMAKE_CURRENT_BINARY_DIR})
-morpheusoracle_include_directories(${CMAKE_CURRENT_SOURCE_DIR})
+morpheusoracle_include_directories(${CMAKE_CURRENT_BINARY_DIR}
+                                   ${CMAKE_CURRENT_SOURCE_DIR})
 
 set(MORPHEUS_ORACLE_HEADER_INSTALL_DIR ${MORPHEUS_HEADER_INSTALL_DIR}/oracle)
-set(MORPHEUSORACLE_HEADER_INSTALL_DIR ${MORPHEUS_ORACLE_HEADER_INSTALL_DIR})
 
 install(
   DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/"
@@ -21,7 +20,7 @@ append_glob(MORPHEUS_ORACLE_HEADERS ${CMAKE_CURRENT_SOURCE_DIR}/*.hpp)
 append_glob(MORPHEUS_ORACLE_HEADERS ${CMAKE_CURRENT_SOURCE_DIR}/impl/*.hpp)
 append_glob(MORPHEUS_ORACLE_HEADERS ${CMAKE_CURRENT_SOURCE_DIR}/fwd/*.hpp)
 
-foreach(Tuner RunFirst)
+foreach(Tuner RunFirst;DecisionTree;RandomForest)
   append_glob(MORPHEUS_ORACLE_SOURCES
               ${CMAKE_CURRENT_SOURCE_DIR}/impl/${Tuner}/*.cpp)
   append_glob(MORPHEUS_ORACLE_HEADERS
@@ -36,8 +35,8 @@ foreach(HEADER ${MORPHEUS_ORACLE_HEADERS})
   morpheusoracle_include_directories(${dirname})
 endforeach()
 
-morpheusoracle_add_library(morpheus-oracle HEADERS ${MORPHEUS_ORACLE_HEADERS}
-                           SOURCES ${MORPHEUS_ORACLE_SOURCES})
+morpheusoracle_add_library(morpheus-oracle SOURCES ${MORPHEUS_ORACLE_SOURCES}
+                           HEADERS ${MORPHEUS_ORACLE_HEADERS})
 
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/MorpheusOracle_config.hpp
         DESTINATION ${MORPHEUS_ORACLE_HEADER_INSTALL_DIR})

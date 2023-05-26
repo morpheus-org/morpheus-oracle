@@ -80,44 +80,51 @@ class RandomForest {
    */
   RandomForest() = default;
 
-  RandomForest(const std::string& fmetadata, const string_vector& ftrees)
+  RandomForest(const std::string& filename, const bool binary = true,
+               const bool feature_names = true)
       : nfeatures_(0),
         nclasses_(0),
         noutputs_(0),
+        nestimators_(0),
+        estimator_sizes_(0),
         classes_(),
+        feature_names_sizes_(),
         feature_names_(),
         estimators_(),
-        metadata_filename_(fmetadata),
-        tree_filenames_(ftrees) {
-    load_forest(fmetadata, ftrees);
+        filename_(filename) {
+    load_forest(filename, binary, feature_names);
   }
 
   RandomForest(const RandomForest& forest)
       : nfeatures_(forest.nfeatures()),
         nclasses_(forest.nclasses()),
         noutputs_(forest.noutputs()),
+        nestimators_(forest.nestimators()),
+        estimator_sizes_(forest.cestimator_sizes()),
         classes_(forest.cclasses()),
+        feature_names_sizes_(forest.cfeature_names_sizes()),
         feature_names_(forest.cfeature_names()),
         estimators_(forest.cestimators()),
-        metadata_filename_(forest.meatadata_filename()),
-        tree_filenames_(forest.ctree_filenames()) {}
+        filename_(forest.filename()) {}
 
   RandomForest& operator=(const RandomForest& forest) {
-    nfeatures_         = forest.nfeatures();
-    nclasses_          = forest.nclasses();
-    noutputs_          = forest.noutputs();
-    classes_           = forest.cclasses();
-    feature_names_     = forest.cfeature_names();
-    estimators_        = forest.cestimators();
-    metadata_filename_ = forest.meatadata_filename();
-    tree_filenames_    = forest.ctree_filenames();
+    nfeatures_           = forest.nfeatures();
+    nclasses_            = forest.nclasses();
+    noutputs_            = forest.noutputs();
+    nestimators_         = forest.nestimators();
+    estimator_sizes_     = forest.cestimator_sizes();
+    classes_             = forest.cclasses();
+    feature_names_sizes_ = forest.cfeature_names_sizes();
+    feature_names_       = forest.cfeature_names();
+    estimators_          = forest.cestimators();
+    filename_            = forest.filename();
     return *this;
   }
 
-  void load_forest(const std::string& fmetadata, const string_vector& ftrees) {
-    metadata_filename_ = fmetadata;
-    tree_filenames_    = ftrees;
-    Morpheus::Oracle::load_forest(fmetadata, ftrees, *this);
+  void load_forest(const string_type& filename, const bool binary = true,
+                   const bool feature_names = true) {
+    filename_ = filename;
+    Morpheus::Oracle::load(filename, *this, binary, feature_names);
   }
 
   index_type evaluate(const scalar_vector& sample) {
@@ -149,11 +156,13 @@ class RandomForest {
               << std::endl;
     std::cout << std::setw(offset) << "Number of Outputs: " << noutputs()
               << std::endl;
+    std::cout << std::setw(offset) << "Number of Estimators: " << nestimators()
+              << std::endl;
 
     for (size_type i = 0; i < estimators().size(); i++) {
       std::cout << std::setw(offset) << "Estimator " << i << ": " << std::endl;
       std::cout << std::setw(offset + 4) << "{" << std::endl;
-      estimators(i).print(offset + 25);
+      estimators(i).print(offset + 25, false);
       std::cout << std::setw(offset + 4) << "}" << std::endl;
     }
   }
@@ -161,39 +170,55 @@ class RandomForest {
   size_type nfeatures() const { return nfeatures_; }
   size_type nclasses() const { return nclasses_; }
   size_type noutputs() const { return noutputs_; }
-  string_type meatadata_filename() const { return metadata_filename_; }
-  const string_vector& ctree_filenames() const { return tree_filenames_; }
+  size_type nestimators() const { return nestimators_; }
+  string_type filename() const { return filename_; }
 
   void set_nfeatures(const size_t nfeatures) { nfeatures_ = nfeatures; }
   void set_nclasses(const size_t nclasses) { nclasses_ = nclasses; }
   void set_noutputs(const size_t noutputs) { noutputs_ = noutputs; }
+  void set_nestimators(const size_t nestimators) { nestimators_ = nestimators; }
 
+  index_type& estimator_sizes(size_t i) { return estimator_sizes_[i]; }
   index_type& classes(size_t i) { return classes_[i]; }
   tree_type& estimators(size_t i) { return estimators_[i]; }
+  index_type& feature_names_sizes(size_t i) { return feature_names_sizes_[i]; }
   string_type& feature_names(size_t i) { return feature_names_[i]; }
 
+  const index_type& cestimator_sizes(size_t i) const {
+    return estimator_sizes_[i];
+  }
   const index_type& cclasses(size_t i) const { return classes_[i]; }
   const tree_type& cestimators(size_t i) const { return estimators_[i]; }
+  const index_type& cfeature_names_sizes(size_t i) const {
+    return feature_names_sizes_[i];
+  }
   const string_type& cfeature_names(size_t i) const {
     return feature_names_[i];
   }
 
+  index_vector& estimator_sizes() { return estimator_sizes_; }
   index_vector& classes() { return classes_; }
   tree_vector& estimators() { return estimators_; }
+  index_vector& feature_names_sizes() { return feature_names_sizes_; }
   string_vector& feature_names() { return feature_names_; }
 
+  const index_vector& cestimator_sizes() const { return estimator_sizes_; }
   const index_vector& cclasses() const { return classes_; }
   const tree_vector& cestimators() const { return estimators_; }
+  const index_vector& cfeature_names_sizes() const {
+    return feature_names_sizes_;
+  }
   const string_vector& cfeature_names() const { return feature_names_; }
 
   /*! \cond */
  private:
-  size_type nfeatures_, nclasses_, noutputs_;
+  size_type nfeatures_, nclasses_, noutputs_, nestimators_;
+  index_vector estimator_sizes_;
   index_vector classes_;
+  index_vector feature_names_sizes_;
   string_vector feature_names_;
   tree_vector estimators_;
-  string_type metadata_filename_;
-  string_vector tree_filenames_;
+  string_type filename_;
   /*! \endcond */
 };
 

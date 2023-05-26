@@ -1,0 +1,31 @@
+#!/bin/bash --login
+
+SCRIPT_PATH=$SCRIPTPATH
+EXPERIMENT_ROOT_PATH=$ROOT_DIR
+BUILD_PATH=$BUILD_PATH
+BACKEND=$BACKEND
+MORPHEUSORACLE_PATH=$MORPHEUSORACLE_PATH
+KOKKOS_PATH=$KOKKOS_PATH
+
+EXPERIMENT_INSTALL_DIR=$SCRIPT_PATH/installs/$BACKEND
+
+module use -a /lustre/projects/bristol/modules-a64fx/modulefiles
+module load cmake
+module load gcc/10.3.0
+
+BACKEND_SERIAL="ON"
+BACKEND_OPENMP="OFF"
+
+CXX_COMPILER=$(which g++)
+if [ "openmp" == "$BACKEND" ]; then
+  BACKEND_OPENMP="ON"
+fi
+
+mkdir -p $BUILD_PATH && cd $BUILD_PATH
+cmake $EXPERIMENT_ROOT_PATH -DCMAKE_CXX_COMPILER=${CXX_COMPILER} \
+                           -DCMAKE_BUILD_TYPE=Release \
+                           -DCMAKE_INSTALL_PREFIX=${EXPERIMENT_INSTALL_DIR} \
+                           -DCMAKE_CXX_EXTENSIONS=Off \
+                           -DMorpheusOracle_ROOT=${MORPHEUSORACLE_PATH} \
+                           -DMorpheusOracleExperiments_ENABLE_SERIAL=${BACKEND_SERIAL} \
+                           -DMorpheusOracleExperiments_ENABLE_OPENMP=${BACKEND_OPENMP} && make -j

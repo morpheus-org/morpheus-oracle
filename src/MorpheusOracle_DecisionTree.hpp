@@ -84,12 +84,14 @@ class DecisionTree {
    */
   DecisionTree() = default;
 
-  DecisionTree(const string_type& filename)
+  DecisionTree(const string_type& filename, bool binary = true,
+               bool feature_names = true)
       : nfeatures_(0),
         nclasses_(0),
         nodecount_(0),
         maxdepth_(0),
         classes_(),
+        feature_names_sizes_(),
         feature_names_(),
         left_child_(),
         right_child_(),
@@ -97,7 +99,7 @@ class DecisionTree {
         features_(),
         values_(),
         tree_filename_(filename) {
-    load_tree(filename);
+    load_tree(filename, binary, feature_names);
   }
 
   DecisionTree(const DecisionTree& tree)
@@ -106,6 +108,7 @@ class DecisionTree {
         nodecount_(tree.nodecount()),
         maxdepth_(tree.maxdepth()),
         classes_(tree.cclasses()),
+        feature_names_sizes_(tree.cfeature_names_sizes()),
         feature_names_(tree.cfeature_names()),
         left_child_(tree.cleft_child()),
         right_child_(tree.cright_child()),
@@ -115,24 +118,26 @@ class DecisionTree {
         tree_filename_(tree.filename()) {}
 
   DecisionTree& operator=(const DecisionTree& tree) {
-    nfeatures_     = tree.nfeatures();
-    nclasses_      = tree.nclasses();
-    nodecount_     = tree.nodecount();
-    maxdepth_      = tree.maxdepth();
-    classes_       = tree.cclasses();
-    feature_names_ = tree.cfeature_names();
-    left_child_    = tree.cleft_child();
-    right_child_   = tree.cright_child();
-    threshold_     = tree.cthreshold();
-    features_      = tree.cfeatures();
-    values_        = tree.cvalues();
-    tree_filename_ = tree.filename();
+    nfeatures_           = tree.nfeatures();
+    nclasses_            = tree.nclasses();
+    nodecount_           = tree.nodecount();
+    maxdepth_            = tree.maxdepth();
+    classes_             = tree.cclasses();
+    feature_names_sizes_ = tree.cfeature_names_sizes();
+    feature_names_       = tree.cfeature_names();
+    left_child_          = tree.cleft_child();
+    right_child_         = tree.cright_child();
+    threshold_           = tree.cthreshold();
+    features_            = tree.cfeatures();
+    values_              = tree.cvalues();
+    tree_filename_       = tree.filename();
     return *this;
   }
 
-  void load_tree(const string_type& filename) {
+  void load_tree(const string_type& filename, bool binary = true,
+                 bool feature_names = true) {
     tree_filename_ = filename;
-    Morpheus::Oracle::load_tree(filename, *this);
+    Morpheus::Oracle::load(filename, *this, binary, feature_names);
   }
 
   index_type evaluate(const scalar_vector& sample) { return recurse(sample); }
@@ -156,7 +161,7 @@ class DecisionTree {
     }
   }
 
-  void print(size_t offset = 25) {
+  void print(size_t offset = 25, bool print_feature_names = true) {
     std::cout << std::setw(offset) << "Number of Features: " << nfeatures()
               << std::endl;
     std::cout << std::setw(offset) << "Number of Classes: " << nclasses()
@@ -167,8 +172,13 @@ class DecisionTree {
 
     std::cout << std::setw(offset) << "Classes : ";
     print_array(classes(), nclasses(), std::cout);
-    std::cout << std::setw(offset) << "Feature Names : ";
-    print_array(feature_names(), feature_names().size(), std::cout);
+    if (print_feature_names) {
+      std::cout << std::setw(offset) << "Feature Names Sizes : ";
+      print_array(feature_names_sizes(), feature_names_sizes().size(),
+                  std::cout);
+      std::cout << std::setw(offset) << "Feature Names : ";
+      print_array(feature_names(), feature_names().size(), std::cout);
+    }
     std::cout << std::setw(offset) << "Left Children : ";
     print_array(left_child(), nodecount(), std::cout);
     std::cout << std::setw(offset) << "Right Children : ";
@@ -197,16 +207,20 @@ class DecisionTree {
   index_type& left_child(size_t i) { return left_child_(i); }
   index_type& right_child(size_t i) { return right_child_(i); }
   value_type& threshold(size_t i) { return threshold_(i); }
-  value_type& features(size_t i) { return features_(i); }
+  index_type& features(size_t i) { return features_(i); }
   value_type& values(size_t i, size_t j) { return values_(i, j); }
+  index_type& feature_names_sizes(size_t i) { return feature_names_sizes_[i]; }
   string_type& feature_names(size_t i) { return feature_names_[i]; }
 
   const index_type& cclasses(size_t i) const { return classes_(i); }
   const index_type& cleft_child(size_t i) const { return left_child_(i); }
   const index_type& cright_child(size_t i) const { return right_child_(i); }
   const value_type& cthreshold(size_t i) const { return threshold_(i); }
-  const value_type& cfeatures(size_t i) const { return features_(i); }
+  const index_type& cfeatures(size_t i) const { return features_(i); }
   const value_type& cvalues(size_t i, size_t j) const { return values_(i, j); }
+  const index_type& cfeature_names_sizes(size_t i) const {
+    return feature_names_sizes_[i];
+  }
   const string_type& cfeature_names(size_t i) const {
     return feature_names_[i];
   }
@@ -215,27 +229,32 @@ class DecisionTree {
   index_vector& left_child() { return left_child_; }
   index_vector& right_child() { return right_child_; }
   scalar_vector& threshold() { return threshold_; }
-  scalar_vector& features() { return features_; }
+  index_vector& features() { return features_; }
   scalar_vector2d& values() { return values_; }
+  index_vector& feature_names_sizes() { return feature_names_sizes_; }
   string_vector& feature_names() { return feature_names_; }
 
   const index_vector& cclasses() const { return classes_; }
   const index_vector& cleft_child() const { return left_child_; }
   const index_vector& cright_child() const { return right_child_; }
   const scalar_vector& cthreshold() const { return threshold_; }
-  const scalar_vector& cfeatures() const { return features_; }
+  const index_vector& cfeatures() const { return features_; }
   const scalar_vector2d& cvalues() const { return values_; }
+  const index_vector& cfeature_names_sizes() const {
+    return feature_names_sizes_;
+  }
   const string_vector& cfeature_names() const { return feature_names_; }
 
   /*! \cond */
  private:
   size_type nfeatures_, nclasses_, nodecount_, maxdepth_;
   index_vector classes_;
+  index_vector feature_names_sizes_;
   string_vector feature_names_;
   index_vector left_child_;
   index_vector right_child_;
   scalar_vector threshold_;
-  scalar_vector features_;
+  index_vector features_;
   scalar_vector2d values_;
   string_type tree_filename_;
   const int LEAF = -2;

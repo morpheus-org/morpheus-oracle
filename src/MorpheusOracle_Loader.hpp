@@ -25,11 +25,7 @@
 #define MORPHEUSORACLE_LOADER_HPP
 
 #include <MorpheusOracle_TypeTraits.hpp>
-#include <fwd/MorpheusOracle_Fwd_DecisionTree.hpp>
 #include <impl/MorpheusOracle_Loader_Impl.hpp>
-#include <Morpheus_Core.hpp>
-
-#include <vector>
 
 namespace Morpheus {
 namespace Oracle {
@@ -42,88 +38,29 @@ namespace Oracle {
  */
 
 template <typename Tree>
-void load_tree(const std::string& filename, Tree& tree,
-               typename std::enable_if_t<is_decision_tree_v<Tree>>* = nullptr) {
-  std::ifstream file(filename.c_str());
-
-  Impl::skip_comment(file);
-  // Read four entries (NFeatures, Nclasses, NodeCount, MaxDepth)
-  std::vector<std::string> tokens;
-  std::string line;
-  std::getline(file, line);
-  Impl::tokenize(tokens, line);
-
-  size_t nfeatures, nclasses, nodecount, maxdepth;
-  std::istringstream(tokens[0]) >> nfeatures;
-  std::istringstream(tokens[1]) >> nclasses;
-  std::istringstream(tokens[2]) >> nodecount;
-  std::istringstream(tokens[3]) >> maxdepth;
-
-  tree.set_nfeatures(nfeatures);
-  tree.set_nclasses(nclasses);
-  tree.set_nodecount(nodecount);
-  tree.set_maxdepth(maxdepth);
-
-  tree.classes().resize(nclasses, 0);
-  Impl::load_array(tree.classes(), file, true);
-
-  tree.feature_names().resize(nfeatures);
-  Impl::load_array(tree.feature_names(), file, true);
-
-  tree.left_child().resize(nodecount, 0);
-  Impl::load_array(tree.left_child(), file, true);
-
-  tree.right_child().resize(nodecount, 0);
-  Impl::load_array(tree.right_child(), file, true);
-
-  tree.threshold().resize(nodecount, 0);
-  Impl::load_array(tree.threshold(), file, true);
-
-  tree.features().resize(nodecount, 0);
-  Impl::load_array(tree.features(), file, true);
-
-  tree.values().resize(nodecount, nclasses);
-  Impl::load_array(tree.values(), file, true);
+void load(std::ifstream& stree, Tree& tree, const bool binary = true,
+          const bool feature_names = true) {
+  static_assert(
+      is_decision_tree_v<Tree> || is_random_forest_v<Tree>,
+      "Input Structure must be either a DecisionTree or RandomForest!");
+  if (binary) {
+    Impl::load_binary(stree, tree, feature_names);
+  } else {
+    Impl::load_text(stree, tree, feature_names);
+  }
 }
 
-template <typename Forest>
-void load_forest(
-    const std::string& fmetadata, const std::vector<std::string>& ftrees,
-    Forest& forest,
-    typename std::enable_if_t<is_random_forest_v<Forest>>* = nullptr) {
-  // Load Metadata
-  {
-    std::ifstream file(fmetadata.c_str());
-
-    Impl::skip_comment(file);
-    // Read four entries (NFeatures, Nclasses, NOutputs)
-    std::vector<std::string> tokens;
-    std::string line;
-    std::getline(file, line);
-    Impl::tokenize(tokens, line);
-
-    size_t nfeatures, nclasses, noutputs;
-    std::istringstream(tokens[0]) >> nfeatures;
-    std::istringstream(tokens[1]) >> nclasses;
-    std::istringstream(tokens[2]) >> noutputs;
-
-    forest.set_nfeatures(nfeatures);
-    forest.set_nclasses(nclasses);
-    forest.set_noutputs(noutputs);
-
-    forest.classes().resize(nclasses, 0);
-    Impl::load_array(forest.classes(), file, true);
-
-    forest.feature_names().resize(nfeatures);
-    Impl::load_array(forest.feature_names(), file, true);
+template <typename Tree>
+void load(const std::string& ftree, Tree& tree, const bool binary = true,
+          const bool feature_names = true) {
+  auto mode = binary ? std::ios::in | std::ios::binary : std::ios::in;
+  std::ifstream file(ftree.c_str(), mode);
+  if (!file.is_open()) {
+    throw std::runtime_error("Could not open file at: " + ftree);
   }
-  // Load each tree
-  {
-    forest.estimators().resize(ftrees.size());
-    for (size_t i = 0; i < ftrees.size(); i++) {
-      load_tree(ftrees[i], forest.estimators(i));
-    }
-  }
+  file.seekg(0, std::ios::beg);
+
+  load(file, tree, binary, feature_names);
 }
 
 /*! \} end of loader group

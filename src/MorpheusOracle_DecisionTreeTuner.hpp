@@ -54,13 +54,15 @@ class DecisionTreeTuner {
         format_id_(INVALID_FORMAT_STATE),
         verbose_(verbose) {}
 
-  DecisionTreeTuner(const std::string& filename, bool verbose = false) {
-    reload(filename);
+  DecisionTreeTuner(const std::string& filename, const bool binary = true,
+                    const bool feature_names = true, bool verbose = false) {
+    reload(filename, binary, feature_names);
     verbose_ = verbose;
   }
 
-  void reload(const std::string& filename) {
-    tree_.load_tree(filename);
+  void reload(const std::string& filename, const bool binary = true,
+              const bool feature_names = true) {
+    tree_.load_tree(filename, binary, feature_names);
     reset();
   }
 
