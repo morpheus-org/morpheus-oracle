@@ -55,8 +55,8 @@ struct ExtractFeaturesFunctor {
       typename std::enable_if_t<
           Morpheus::is_dynamic_matrix_container_v<Matrix> &&
           Morpheus::is_dense_vector_format_container_v<FeatureVector> &&
-          Morpheus::has_access_v<ExecSpace, Matrix, FeatureVector>>* =
-          nullptr) {
+          Morpheus::has_host_memory_space_v<FeatureVector> &&
+          Morpheus::has_access_v<ExecSpace, Matrix>>* = nullptr) {
     static_assert(
         std::is_floating_point_v<typename FeatureVector::value_type>,
         "The value_type of the FeatureVector must be a floating-point "
