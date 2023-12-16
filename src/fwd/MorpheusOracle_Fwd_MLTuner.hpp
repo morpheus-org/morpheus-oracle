@@ -1,5 +1,5 @@
 /**
- * Morpheus_Oracle.hpp
+ * MorpheusOracle_Fwd_MLTuner.hpp
  *
  * EPCC, The University of Edinburgh
  *
@@ -21,27 +21,14 @@
  * limitations under the License.
  */
 
-#ifndef MORPHEUS_ORACLE_HPP
-#define MORPHEUS_ORACLE_HPP
+#ifndef MORPHEUSORACLE_FWD_MLTUNER_HPP
+#define MORPHEUSORACLE_FWD_MLTUNER_HPP
 
-// Tuners
-#include <MorpheusOracle_RunFirstTuner.hpp>
-#include <MorpheusOracle_MLTuner.hpp>
-#include <MorpheusOracle_DecisionTreeTuner.hpp>
-#include <MorpheusOracle_RandomForestTuner.hpp>
+namespace Morpheus {
+namespace Oracle {
+template <typename T>
+class MLTuner;
+}  // namespace Oracle
+}  // namespace Morpheus
 
-// Operations
-#include <MorpheusOracle_Tune.hpp>
-
-// Functors
-#include <MorpheusOracle_RunFirstFunctor.hpp>
-#include <MorpheusOracle_MLFunctor.hpp>
-
-// Utils
-#include <MorpheusOracle_Macros.hpp>
-#include <MorpheusOracle_TypeTraits.hpp>
-
-// IO
-#include <MorpheusOracle_Loader.hpp>
-
-#endif  // MORPHEUS_ORACLE_HPP
+#endif  // MORPHEUSORACLE_FWD_MLTUNER_HPP

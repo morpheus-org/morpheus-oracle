@@ -24,9 +24,10 @@
 #ifndef MORPHEUSORACLE_RANDOMFORESTTUNER_HPP
 #define MORPHEUSORACLE_RANDOMFORESTTUNER_HPP
 
+#include <MorpheusOracle_MLTuner.hpp>
 #include <MorpheusOracle_RandomForest.hpp>
 
-#include <Morpheus_Core.hpp>
+#include <vector>
 
 namespace Morpheus {
 namespace Oracle {
@@ -36,12 +37,13 @@ namespace Oracle {
  *
  */
 
-class RandomForestTuner {
+class RandomForestTuner : public MLTuner<RandomForestTuner> {
  public:
-  using scalar_vector = Morpheus::DenseVector<double, Morpheus::HostSpace>;
-  /*! Enum value specifying the state of the tuner when the optimum format
-   * has not been yet selected*/
-  enum format_state { INVALID_FORMAT_STATE = -1 };
+  using scalar_vector = std::vector<double>;
+
+  /*! Value specifying the state of the tuner when the optimum state has
+   * not been yet selected*/
+  static const int INVALID_STATE = -1;
 
   /**
    * @brief Construct a new RandomForestTuner object
@@ -51,7 +53,7 @@ class RandomForestTuner {
   RandomForestTuner(const RandomForest& forest, bool verbose = false)
       : forest_(forest),
         timings_(2, 0),
-        format_id_(INVALID_FORMAT_STATE),
+        state_id_(INVALID_STATE),
         verbose_(verbose) {}
 
   RandomForestTuner(const std::string& filename, const bool binary = true,
@@ -64,10 +66,12 @@ class RandomForestTuner {
               const bool feature_names = true) {
     forest_.load_forest(filename, binary, feature_names);
     reset();
+    forest_.print();
   }
 
-  void tune(const scalar_vector& sample) {
-    format_id_ = forest_.evaluate(sample);
+  template <typename SampleVector>
+  void run(const SampleVector& sample) {
+    state_id_ = forest_.evaluate(sample);
   }
 
   /**
@@ -75,7 +79,7 @@ class RandomForestTuner {
    *
    */
   void reset() {
-    format_id_ = INVALID_FORMAT_STATE;
+    state_id_ = INVALID_STATE;
     timings_.resize(2, 0);
   }
 
@@ -117,7 +121,7 @@ class RandomForestTuner {
     cout << setw(20) << "Feature Extraction: " << timings_[0] << " (s)" << endl;
     cout << setw(20) << "Inference: " << timings_[1] << " (s)" << endl;
     cout << endl;
-    cout << "Optimum Format ID: " << format_id() << endl;
+    cout << "Optimum Format ID: " << state_id() << endl;
   }
 
   /**
@@ -131,11 +135,11 @@ class RandomForestTuner {
   /**
    * @brief Provides the index of the optimum format selected by the tuner. Note
    * that until the tuner finishes the tuning process, the format ID is set to
-   * \p INVALID_FORMAT_STATE.
+   * \p INVALID_STATE.
    *
    * @return int Optimum format index.
    */
-  int format_id() const { return format_id_; }
+  int state_id() const { return state_id_; }
 
   /**
    * @brief Checks if the tuner prints verbose messages.
@@ -156,7 +160,7 @@ class RandomForestTuner {
  private:
   RandomForest forest_;
   scalar_vector timings_;
-  int format_id_;
+  int state_id_;
   bool verbose_;
   /*! \endcond */
 };

@@ -178,64 +178,6 @@ function(MORPHEUSORACLE_ADD_LIBRARY LIBRARY_NAME)
   morpheusoracle_internal_add_library(${LIBRARY_NAME} ${ARGN})
 endfunction()
 
-# function(MORPHEUSORACLE_ADD_EXECUTABLE EXE_NAME) cmake_parse_arguments(PARSE
-# "" "" "SOURCES;COMPONENTS;TESTONLYLIBS" ${ARGN})
-# verify_empty(MORPHEUSORACLE_ADD_EXECUTABLE ${PARSE_UNPARSED_ARGUMENTS})
-
-# morpheusoracle_is_enabled(COMPONENTS ${PARSE_COMPONENTS} OUTPUT_VARIABLE
-# IS_ENABLED)
-
-# if(IS_ENABLED) add_executable(${EXE_NAME} ${PARSE_SOURCES}) # AJP, BMK
-# altered: if(MORPHEUSORACLE_ENABLE_TESTS_AND_PERFSUITE)
-# target_link_libraries(${EXE_NAME} PRIVATE common ${PARSE_TESTONLYLIBS})
-# endif()
-
-# if(PARSE_TESTONLYLIBS) target_link_libraries(${EXE_NAME} PRIVATE
-# Morpheus::morpheus-oracle ${PARSE_TESTONLYLIBS}) else()
-# target_link_libraries(${EXE_NAME} PRIVATE Morpheus::morpheus-oracle) endif()
-# else() message( STATUS "Skipping executable ${EXE_NAME} because not all
-# necessary components enabled" ) endif() endfunction()
-
-# function(MORPHEUSORACLE_ADD_EXECUTABLE_AND_TEST ROOT_NAME)
-
-# cmake_parse_arguments(PARSE "" "" "SOURCES;CATEGORIES;COMPONENTS;TESTONLYLIBS"
-# ${ARGN}) verify_empty(MORPHEUSORACLE_ADD_EXECUTABLE_AND_RUN_VERIFY
-# ${PARSE_UNPARSED_ARGUMENTS})
-
-# morpheusoracle_is_enabled(COMPONENTS ${PARSE_COMPONENTS} OUTPUT_VARIABLE
-# IS_ENABLED)
-
-# if(IS_ENABLED) set(EXE_NAME ${PACKAGE_NAME}_${ROOT_NAME})
-# morpheusoracle_add_executable(${EXE_NAME} SOURCES ${PARSE_SOURCES})
-# if(PARSE_TESTONLYLIBS) target_link_libraries(${EXE_NAME} PRIVATE
-# ${PARSE_TESTONLYLIBS}) endif() morpheusoracle_add_test(NAME ${ROOT_NAME} EXE
-# ${EXE_NAME}) else() message( STATUS "Skipping executable/test ${ROOT_NAME}
-# because not all necessary components enabled" ) endif()
-
-# endfunction()
-
-# function(MORPHEUSORACLE_ADD_TEST)
-
-# cmake_parse_arguments(PARSE "" "" "COMPONENTS" ${ARGN})
-
-# morpheusoracle_is_enabled(COMPONENTS ${PARSE_COMPONENTS} OUTPUT_VARIABLE
-# IS_ENABLED)
-
-# if(IS_ENABLED) cmake_parse_arguments( TEST "WILL_FAIL"
-# "FAIL_REGULAR_EXPRESSION;PASS_REGULAR_EXPRESSION;EXE;NAME" "CATEGORIES"
-# ${PARSE_UNPARSED_ARGUMENTS}) if(TEST_EXE) set(EXE ${TEST_EXE}) else() set(EXE
-# ${TEST_NAME}) endif() if(WIN32) add_test( NAME ${TEST_NAME} WORKING_DIRECTORY
-# ${LIBRARY_OUTPUT_PATH} COMMAND ${EXE}${CMAKE_EXECUTABLE_SUFFIX}) else()
-# add_test(NAME ${TEST_NAME} COMMAND ${EXE}) endif() if(TEST_WILL_FAIL)
-# set_tests_properties(${TEST_NAME} PROPERTIES WILL_FAIL ${TEST_WILL_FAIL})
-# endif() if(TEST_FAIL_REGULAR_EXPRESSION) set_tests_properties( ${TEST_NAME}
-# PROPERTIES FAIL_REGULAR_EXPRESSION ${TEST_FAIL_REGULAR_EXPRESSION}) endif()
-# if(TEST_PASS_REGULAR_EXPRESSION) set_tests_properties( ${TEST_NAME} PROPERTIES
-# PASS_REGULAR_EXPRESSION ${TEST_PASS_REGULAR_EXPRESSION}) endif()
-# verify_empty(MORPHEUSORACLE_ADD_TEST ${TEST_UNPARSED_ARGUMENTS}) else()
-# message( STATUS "Skipping test ${TEST_NAME} because not all necessary
-# components enabled" ) endif() endfunction()
-
 function(MORPHEUSORACLE_ADD_EXECUTABLE_AND_TEST ROOT_NAME)
   cmake_parse_arguments(PARSE "" "" "SOURCES;CATEGORIES;ARGS" ${ARGN})
   verify_empty(MORPHEUSORACLE_ADD_EXECUTABLE_AND_TEST

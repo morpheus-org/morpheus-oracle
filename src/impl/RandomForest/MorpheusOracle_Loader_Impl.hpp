@@ -120,7 +120,7 @@ void load_text(std::ifstream& sforest, Tree& forest,
   std::vector<std::string> tokens;
   std::string line;
   std::getline(sforest, line);
-  Morpheus::IO::Impl::tokenize(tokens, line);
+  Impl::tokenize(tokens, line);
 
   size_t nfeatures, nclasses, noutputs, nestimators;
   std::istringstream(tokens[0]) >> nfeatures;

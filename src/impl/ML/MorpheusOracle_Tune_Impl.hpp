@@ -21,8 +21,8 @@
  * limitations under the License.
  */
 
-#ifndef MORPHEUSORACLE_IMPL_DECISIONTREE_TUNE_IMPL_HPP
-#define MORPHEUSORACLE_IMPL_DECISIONTREE_TUNE_IMPL_HPP
+#ifndef MORPHEUSORACLE_IMPL_ML_TUNE_IMPL_HPP
+#define MORPHEUSORACLE_IMPL_ML_TUNE_IMPL_HPP
 
 #include <MorpheusOracle_TypeTraits.hpp>
 
@@ -32,22 +32,22 @@ namespace Morpheus {
 namespace Oracle {
 namespace Impl {
 
-template <typename Matrix, typename FeaturesFunctor, typename Tuner>
-void tune(const Matrix& mat, FeaturesFunctor& f, Tuner& tuner,
-          typename std::enable_if_t<
-              Morpheus::Oracle::is_decision_tree_tuner_v<Tuner>>* = nullptr) {
-  using vector = typename Tuner::scalar_vector::HostMirror;
-  using ns     = std::chrono::nanoseconds;
+template <typename Data, typename TuneFunctor, typename Tuner>
+void tune(
+    const Data& data, TuneFunctor& f, Tuner& tuner,
+    typename std::enable_if_t<Morpheus::Oracle::is_ml_tuner_v<Tuner> &&
+                              Morpheus::Oracle::is_ml_functor_v<TuneFunctor>>* =
+        nullptr) {
+  using ns = std::chrono::nanoseconds;
 
   auto start = std::chrono::steady_clock::now();
-  vector features;
-  f(mat, features);
+  f.extract_features(data);
   auto end = std::chrono::steady_clock::now();
   tuner.timings()[0] =
       std::chrono::duration_cast<ns>(end - start).count() * 1e-9;
 
   start = std::chrono::steady_clock::now();
-  tuner.tune(features);
+  f.inference(tuner);
   end = std::chrono::steady_clock::now();
   tuner.timings()[1] =
       std::chrono::duration_cast<ns>(end - start).count() * 1e-9;
@@ -57,4 +57,4 @@ void tune(const Matrix& mat, FeaturesFunctor& f, Tuner& tuner,
 }  // namespace Oracle
 }  // namespace Morpheus
 
-#endif  // MORPHEUSORACLE_IMPL_DECISIONTREE_TUNE_IMPL_HPP
+#endif  // MORPHEUSORACLE_IMPL_ML_TUNE_IMPL_HPP

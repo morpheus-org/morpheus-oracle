@@ -45,9 +45,6 @@ morpheusoracle_lib_include_directories(
   morpheus-oracle ${MORPHEUSORACLE_TOP_BUILD_DIR} ${CMAKE_CURRENT_BINARY_DIR}
   ${CMAKE_CURRENT_SOURCE_DIR})
 
-# Link with Morpheus
-target_link_libraries(morpheus-oracle PUBLIC Morpheus::morpheus)
-
 foreach(HEADER ${MORPHEUS_ORACLE_HEADERS})
   get_filename_component(dirname ${HEADER} DIRECTORY)
   target_include_directories(morpheus-oracle

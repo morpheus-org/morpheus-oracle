@@ -24,9 +24,10 @@
 #ifndef MORPHEUSORACLE_DECISIONTREETUNER_HPP
 #define MORPHEUSORACLE_DECISIONTREETUNER_HPP
 
+#include <MorpheusOracle_MLTuner.hpp>
 #include <MorpheusOracle_DecisionTree.hpp>
 
-#include <Morpheus_Core.hpp>
+#include <vector>
 
 namespace Morpheus {
 namespace Oracle {
@@ -36,12 +37,13 @@ namespace Oracle {
  *
  */
 
-class DecisionTreeTuner {
+class DecisionTreeTuner : public MLTuner<DecisionTreeTuner> {
  public:
-  using scalar_vector = Morpheus::DenseVector<double, Morpheus::HostSpace>;
-  /*! Enum value specifying the state of the tuner when the optimum format
-   * has not been yet selected*/
-  enum format_state { INVALID_FORMAT_STATE = -1 };
+  using scalar_vector = std::vector<double>;
+
+  /*! Value specifying the state of the tuner when the optimum state has
+   * not been yet selected*/
+  static const int INVALID_STATE = -1;
 
   /**
    * @brief Construct a new DecisionTreeTuner object
@@ -51,7 +53,7 @@ class DecisionTreeTuner {
   DecisionTreeTuner(const DecisionTree& tree, bool verbose = false)
       : tree_(tree),
         timings_(2, 0),
-        format_id_(INVALID_FORMAT_STATE),
+        state_id_(INVALID_STATE),
         verbose_(verbose) {}
 
   DecisionTreeTuner(const std::string& filename, const bool binary = true,
@@ -66,15 +68,16 @@ class DecisionTreeTuner {
     reset();
   }
 
-  void tune(const scalar_vector& sample) {
-    format_id_ = tree_.evaluate(sample);
+  template <typename SampleVector>
+  void run(const SampleVector& sample) {
+    state_id_ = tree_.evaluate(sample);
   }
   /**
    * @brief Resets the state of the tuner to the initial state.
    *
    */
   void reset() {
-    format_id_ = INVALID_FORMAT_STATE;
+    state_id_ = INVALID_STATE;
     timings_.resize(2, 0);
   }
 
@@ -115,7 +118,7 @@ class DecisionTreeTuner {
     cout << setw(20) << "Feature Extraction: " << timings_[0] << " (s)" << endl;
     cout << setw(20) << "Inference: " << timings_[1] << " (s)" << endl;
     cout << endl;
-    cout << "Optimum Format ID: " << format_id() << endl;
+    cout << "Optimum Format ID: " << state_id() << endl;
   }
 
   /**
@@ -129,11 +132,11 @@ class DecisionTreeTuner {
   /**
    * @brief Provides the index of the optimum format selected by the tuner. Note
    * that until the tuner finishes the tuning process, the format ID is set to
-   * \p INVALID_FORMAT_STATE.
+   * \p INVALID_STATE.
    *
    * @return int Optimum format index.
    */
-  int format_id() const { return format_id_; }
+  int state_id() const { return state_id_; }
 
   /**
    * @brief Checks if the tuner prints verbose messages.
@@ -154,7 +157,7 @@ class DecisionTreeTuner {
  private:
   DecisionTree tree_;
   scalar_vector timings_;
-  int format_id_;
+  int state_id_;
   bool verbose_;
   /*! \endcond */
 };

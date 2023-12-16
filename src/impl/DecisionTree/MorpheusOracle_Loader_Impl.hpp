@@ -134,7 +134,7 @@ void load_binary(
   }
 
   /* Read Values */
-  tree.values().resize(tree.nodecount(), tree.nclasses());
+  tree.values().resize(tree.nodecount() * tree.nclasses());
   memblock.resize(tree.nodecount() * tree.nclasses() * scalar_size);
   ptr = memblock.data();
   stree.read(memblock.data(), tree.nodecount() * tree.nclasses() * scalar_size);
@@ -155,7 +155,7 @@ void load_text(std::ifstream& stree, Tree& tree,
   std::vector<std::string> tokens;
   std::string line;
   std::getline(stree, line);
-  Morpheus::IO::Impl::tokenize(tokens, line);
+  Impl::tokenize(tokens, line);
 
   size_t nfeatures, nclasses, nodecount, maxdepth;
   std::istringstream(tokens[0]) >> nfeatures;
@@ -191,7 +191,7 @@ void load_text(std::ifstream& stree, Tree& tree,
   Impl::load_array(tree.features(), stree, true);
 
   tree.values().resize(nodecount, nclasses);
-  Impl::load_array(tree.values(), stree, true);
+  Impl::load_2d_array(tree.values(), nodecount, nclasses, stree, true);
 }
 
 }  // namespace Impl

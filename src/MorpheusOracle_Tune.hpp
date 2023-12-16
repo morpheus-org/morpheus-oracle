@@ -24,7 +24,6 @@
 #ifndef MORPHEUSORACLE_TUNE_HPP
 #define MORPHEUSORACLE_TUNE_HPP
 
-#include <Morpheus_Core.hpp>
 #include <impl/MorpheusOracle_Tune_Impl.hpp>
 
 namespace Morpheus {
@@ -34,18 +33,18 @@ namespace Oracle {
  * @brief Optimizes an operation by selecting the optimum format for the given
  * matrix. The tuning process depends on the tuner provided.
  *
- * @tparam DynamicMatrix The matrix type for which we are tuning for.
+ * @tparam Data The data type for which we are tuning for.
  * @tparam Functor The functor type of the operation to tune for.
  * @tparam Tuner The tuner type to be used for tuning.
- * @param mat Dynamic matrix
+ * @param data Data containing the input to be used the tuner
  * @param f The functor containing the operation to tune for.
  * @param tuner One of the supported tuners.
  */
-template <typename DynamicMatrix, typename Functor, typename Tuner>
-void tune(const DynamicMatrix& mat, Functor& f, Tuner& tuner) {
-  static_assert(Morpheus::is_dynamic_matrix_container<DynamicMatrix>::value,
-                "Input Matrix for the tuner must be a valid DynamicMatrix.");
-  Impl::tune(mat, f, tuner);
+template <typename Data, typename TuneFunctor, typename Tuner>
+void tune(const Data& data, TuneFunctor& f, Tuner& tuner) {
+  // TODO: Add static_assert to check if any of the available tuners
+  // TODO: Add static_assert to check if any of the available functors base
+  Impl::tune(data, f, tuner);
 }
 
 }  // namespace Oracle

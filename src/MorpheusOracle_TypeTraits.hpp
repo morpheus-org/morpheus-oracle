@@ -27,8 +27,11 @@
 #include <fwd/MorpheusOracle_Fwd_DecisionTree.hpp>
 #include <fwd/MorpheusOracle_Fwd_RandomForest.hpp>
 #include <fwd/MorpheusOracle_Fwd_RunFirstTuner.hpp>
+#include <fwd/MorpheusOracle_Fwd_MLTuner.hpp>
 #include <fwd/MorpheusOracle_Fwd_DecisionTreeTuner.hpp>
 #include <fwd/MorpheusOracle_Fwd_RandomForestTuner.hpp>
+#include <fwd/MorpheusOracle_Fwd_RunFirstFunctor.hpp>
+#include <fwd/MorpheusOracle_Fwd_MLFunctor.hpp>
 
 #include <type_traits>
 
@@ -207,6 +210,101 @@ class is_random_forest_tuner {
 template <typename T>
 inline constexpr bool is_random_forest_tuner_v =
     is_random_forest_tuner<T>::value;
+
+/**
+ * @brief A valid Machine Learning Tuner is the one that is a derived class of
+ * \p MLTuner<T>.
+ *
+ * @tparam T Type passed for check.
+ */
+template <class T>
+class is_ml_tuner {
+  typedef char yes[1];
+  typedef char no[2];
+
+  template <class U>
+  static yes& test(
+      U*,
+      typename std::enable_if<std::is_base_of<MLTuner<U>, U>::value>::type* =
+          nullptr);
+
+  template <class U>
+  static no& test(...);
+
+ public:
+  static const bool value = sizeof(test<T>(nullptr)) == sizeof(yes);
+};
+
+/**
+ * @brief Short-hand to \p is_ml_tuner.
+ *
+ * @tparam T Type passed for check.
+ */
+template <typename T>
+inline constexpr bool is_ml_tuner_v = is_ml_tuner<T>::value;
+
+/**
+ * @brief A valid Machine Learning (ML) Functor is the one that is derived from
+ * the \p MLFunctorBase functor.
+ *
+ * @tparam T Type passed for check.
+ */
+template <class T>
+class is_ml_functor {
+  typedef char yes[1];
+  typedef char no[2];
+
+  template <class U>
+  static yes& test(
+      U*, typename std::enable_if<
+              std::is_base_of<MLFunctorBase<U>, U>::value>::type* = nullptr);
+
+  template <class U>
+  static no& test(...);
+
+ public:
+  static const bool value = sizeof(test<T>(nullptr)) == sizeof(yes);
+};
+
+/**
+ * @brief Short-hand to \p is_ml_tuner.
+ *
+ * @tparam T Type passed for check.
+ */
+template <typename T>
+inline constexpr bool is_ml_functor_v = is_ml_functor<T>::value;
+
+/**
+ * @brief A valid RunFirst Functor is the one that is derived from
+ * the \p RunFirstFunctorBase functor.
+ *
+ * @tparam T Type passed for check.
+ */
+template <class T>
+class is_runfirst_functor {
+  typedef char yes[1];
+  typedef char no[2];
+
+  template <class U>
+  static yes& test(
+      U*,
+      typename std::enable_if<
+          std::is_base_of<RunFirstFunctorBase<U>, U>::value>::type* = nullptr);
+
+  template <class U>
+  static no& test(...);
+
+ public:
+  static const bool value = sizeof(test<T>(nullptr)) == sizeof(yes);
+};
+
+/**
+ * @brief Short-hand to \p is_runfirst_functor.
+ *
+ * @tparam T Type passed for check.
+ */
+template <typename T>
+inline constexpr bool is_runfirst_functor_v = is_runfirst_functor<T>::value;
 
 /*! \} end of typetraits group
  */

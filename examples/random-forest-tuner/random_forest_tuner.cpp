@@ -22,7 +22,7 @@
  */
 
 #include <Morpheus_Oracle.hpp>
-#include <dirent.h>
+#include <Morpheus_Core.hpp>
 
 #if defined(EXAMPLE_ENABLE_SERIAL)
 using Space = Morpheus::Serial;
@@ -36,6 +36,61 @@ using Space = Morpheus::HIP;
 
 using backend       = typename Space::backend;
 using DynamicMatrix = Morpheus::DynamicMatrix<double, backend>;
+
+template <typename ExecSpace>
+struct ExtractFeaturesFunctor : public Morpheus::Oracle::MLFunctorBase<
+                                    ExtractFeaturesFunctor<ExecSpace>> {
+  using features_vector_t = Morpheus::DenseVector<double, Morpheus::HostSpace>;
+
+  ExtractFeaturesFunctor(size_t nfeatures)
+      : _nfeatures(nfeatures), _features(nfeatures, 0) {}
+
+  template <typename Data>
+  void extract_features(
+      const Data& data,
+      typename std::enable_if_t<Morpheus::is_dynamic_matrix_container_v<Data> &&
+                                Morpheus::has_access_v<ExecSpace, Data>>* =
+          nullptr) {
+    using size_type    = typename Data::size_type;
+    using index_type   = typename Data::index_type;
+    using memory_space = typename Data::memory_space;
+    using IndexVector =
+        Morpheus::DenseVector<index_type, size_type, memory_space>;
+
+    if (_features.size() != _nfeatures) {
+      _features.resize(_nfeatures, 0);
+    }
+
+    IndexVector nnz_per_row(data.nrows(), 0);
+    IndexVector nnz_per_diag(data.nrows() + data.ncols() - 1, 0);
+    Morpheus::count_nnz_per_row<ExecSpace>(data, nnz_per_row, false);
+    Morpheus::count_nnz_per_diagonal<ExecSpace>(data, nnz_per_diag, false);
+
+    _features[0] = Morpheus::number_of_rows(data);
+    _features[1] = Morpheus::number_of_columns(data);
+    _features[2] = Morpheus::number_of_nnz(data);
+    _features[3] = Morpheus::average_nnnz(data);
+    _features[4] = Morpheus::density(data);
+    _features[5] = Morpheus::max<ExecSpace>(nnz_per_row, nnz_per_row.size());
+    _features[6] = Morpheus::min<ExecSpace>(nnz_per_row, nnz_per_row.size());
+    _features[7] = Morpheus::std<ExecSpace>(nnz_per_row, nnz_per_row.size(),
+                                            Morpheus::average_nnnz(data));
+    _features[8] = Morpheus::count_nnz<ExecSpace>(nnz_per_diag);
+    _features[9] =
+        Morpheus::count_nnz<ExecSpace>(nnz_per_diag, data.nrows() / 5);
+  }
+
+  features_vector_t& features() { return _features; }
+
+  template <typename Tuner>
+  void inference(Tuner& tuner) {
+    tuner.run(features());
+  }
+
+ private:
+  size_t _nfeatures;
+  Morpheus::DenseVector<double, Morpheus::HostSpace> _features;
+};
 
 int main(int argc, char* argv[]) {
   Morpheus::initialize(argc, argv);
@@ -52,11 +107,11 @@ int main(int argc, char* argv[]) {
       exit(-1);
     }
 
-    std::string fmatrix = argv[1], dforest = argv[2];
+    std::string fmatrix = argv[1], fforest = argv[2];
 
-    std::cout << "\nRunning decision_tree_tuner example with:\n";
+    std::cout << "\nRunning random_forest_tuner example with:\n";
     std::cout << "\tMatrix Filename  : " << fmatrix << "\n";
-    std::cout << "\tForest Directory : " << dforest << "\n\n";
+    std::cout << "\tForest Binary Filename : " << fforest << "\n\n";
 
     typename DynamicMatrix::HostMirror Ah;
     try {
@@ -69,30 +124,10 @@ int main(int argc, char* argv[]) {
     DynamicMatrix A = Morpheus::create_mirror<Space>(Ah);
     Morpheus::copy(Ah, A);
 
-    std::vector<std::string> ftrees;
-    std::string fmetadata;
-    struct dirent* entry = nullptr;
-    DIR* dp              = nullptr;
+    Morpheus::Oracle::RandomForestTuner tuner(fforest, true, true, true);
+    ExtractFeaturesFunctor<Space> f(10);
 
-    dp = opendir(dforest.c_str());
-    if (dp != nullptr) {
-      while ((entry = readdir(dp))) {
-        std::string filename = entry->d_name;
-
-        if (filename.find("metadata") != std::string::npos) {
-          fmetadata = dforest + "/" + filename;
-        } else if (filename == "." || filename == "..") {
-          continue;
-        } else {
-          ftrees.push_back(dforest + "/" + filename);
-        }
-        std::cout << (dforest + "/" + filename) << std::endl;
-      }
-    }
-    closedir(dp);
-
-    Morpheus::Oracle::RandomForestTuner tuner(fmetadata, ftrees, true);
-    Morpheus::Oracle::tune_multiply<backend>(A, tuner);
+    Morpheus::Oracle::tune(A, f, tuner);
     tuner.print();
   }
   Morpheus::finalize();

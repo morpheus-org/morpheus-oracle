@@ -1,5 +1,5 @@
 /**
- * MorpheusOracle_RunFirstFunctors.hpp
+ * MorpheusOracle_MLFunctor.hpp
  *
  * EPCC, The University of Edinburgh
  *
@@ -21,10 +21,10 @@
  * limitations under the License.
  */
 
-#ifndef MORPHEUSORACLE_RUNFIRSTFUNCTORS_HPP
-#define MORPHEUSORACLE_RUNFIRSTFUNCTORS_HPP
+#ifndef MORPHEUSORACLE_ML_FUNCTOR_HPP
+#define MORPHEUSORACLE_ML_FUNCTOR_HPP
 
-#include <Morpheus_Core.hpp>
+#include <type_traits>
 
 //! Generic Morpheus interfaces
 namespace Morpheus {
@@ -40,37 +40,27 @@ namespace Oracle {
  *
  */
 
-/**
- * \addtogroup runfirst_functors RunFirst Functors
- * \brief A set of functors to be used by \p RunFirst autotuner.
- * \ingroup functors
- * \{
- *
- */
+template <typename T>
+class MLFunctorBase {
+  T& actual() { return *static_cast<T*>(this); }
+  T const& actual() const { return *static_cast<T const*>(this); }
 
-template <typename ExecSpace, typename Vector>
-struct RunFirstMultiplyFunctor {
-  RunFirstMultiplyFunctor(Vector& x, Vector& y) : _x(x), _y(y) {}
-
-  RunFirstMultiplyFunctor(size_t nrows, size_t ncols)
-      : _x(ncols, 2.0), _y(nrows, 0) {}
-
-  template <typename Matrix>
-  void operator()(
-      const Matrix& A, bool init,
-      typename std::enable_if_t<
-          Morpheus::is_dynamic_matrix_container_v<Matrix> &&
-          Morpheus::has_access_v<ExecSpace, Matrix, Vector>>* = nullptr) {
-    Morpheus::multiply<ExecSpace>(A, _x, _y, init);
+ public:
+  template <typename Data>
+  void extract_features(const Data& data) {
+    *actual().extract_features(data);
   }
 
- private:
-  Vector _x, _y;
+  auto features() { return *actual().features(); }
+
+  template <typename Tuner>
+  void inference(Tuner& tuner) {
+    *actual().inference(tuner);
+  }
 };
 
-/*! \}  // end of runfirst_functors group */
 /*! \}  // end of functors group */
 }  // namespace Oracle
 }  // namespace Morpheus
 
-#endif  // MORPHEUSORACLE_RUNFIRSTFUNCTORS_HPP
+#endif  // MORPHEUSORACLE_ML_FUNCTOR_HPP

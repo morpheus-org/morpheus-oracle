@@ -26,7 +26,8 @@
 
 #include <MorpheusOracle_Loader.hpp>
 #include <MorpheusOracle_Utils.hpp>
-#include <Morpheus_Core.hpp>
+
+#include <vector>
 
 namespace Morpheus {
 namespace Oracle {
@@ -68,12 +69,11 @@ class DecisionTree {
   using value_type  = double;
   using string_type = std::string;
   /*! A two-dimensional vector of doubles */
-  using scalar_vector2d =
-      Morpheus::DenseMatrix<value_type, size_type, Kokkos::HostSpace>;
+  using scalar_vector2d = std::vector<value_type>;
   /*! A one-dimensional vector of doubles */
-  using scalar_vector = Morpheus::DenseVector<value_type, Kokkos::HostSpace>;
+  using scalar_vector = std::vector<value_type>;
   /*! A one-dimensional vector of integers */
-  using index_vector = Morpheus::DenseVector<index_type, Kokkos::HostSpace>;
+  using index_vector = std::vector<index_type>;
   /*! A one-dimensional vector of strings */
   using string_vector = std::vector<string_type>;
 
@@ -140,9 +140,13 @@ class DecisionTree {
     Morpheus::Oracle::load(filename, *this, binary, feature_names);
   }
 
-  index_type evaluate(const scalar_vector& sample) { return recurse(sample); }
+  template <typename SampleVector>
+  index_type evaluate(const SampleVector& sample) {
+    return recurse(sample);
+  }
 
-  index_type recurse(const scalar_vector& sample, int node = 0) {
+  template <typename SampleVector>
+  index_type recurse(const SampleVector& sample, int node = 0) {
     if (threshold(node) != LEAF) {
       if (sample[features(node)] <= threshold(node)) {
         return recurse(sample, left_child(node));
@@ -153,7 +157,7 @@ class DecisionTree {
       // find index with the largest value
       index_type idx = 0;
       value_type max = std::numeric_limits<value_type>::min();
-      for (size_type i = 0; i < values().ncols(); i++) {
+      for (size_type i = 0; i < nclasses(); i++) {
         idx = max < values(node, i) ? i : idx;
         max = max < values(node, i) ? values(node, i) : max;
       }
@@ -203,21 +207,23 @@ class DecisionTree {
   void set_nodecount(const size_t nodecount) { nodecount_ = nodecount; }
   void set_maxdepth(const size_t maxdepth) { maxdepth_ = maxdepth; }
 
-  index_type& classes(size_t i) { return classes_(i); }
-  index_type& left_child(size_t i) { return left_child_(i); }
-  index_type& right_child(size_t i) { return right_child_(i); }
-  value_type& threshold(size_t i) { return threshold_(i); }
-  index_type& features(size_t i) { return features_(i); }
-  value_type& values(size_t i, size_t j) { return values_(i, j); }
+  index_type& classes(size_t i) { return classes_[i]; }
+  index_type& left_child(size_t i) { return left_child_[i]; }
+  index_type& right_child(size_t i) { return right_child_[i]; }
+  value_type& threshold(size_t i) { return threshold_[i]; }
+  index_type& features(size_t i) { return features_[i]; }
+  value_type& values(size_t i, size_t j) { return values_[i * nclasses() + j]; }
   index_type& feature_names_sizes(size_t i) { return feature_names_sizes_[i]; }
   string_type& feature_names(size_t i) { return feature_names_[i]; }
 
-  const index_type& cclasses(size_t i) const { return classes_(i); }
-  const index_type& cleft_child(size_t i) const { return left_child_(i); }
-  const index_type& cright_child(size_t i) const { return right_child_(i); }
-  const value_type& cthreshold(size_t i) const { return threshold_(i); }
-  const index_type& cfeatures(size_t i) const { return features_(i); }
-  const value_type& cvalues(size_t i, size_t j) const { return values_(i, j); }
+  const index_type& cclasses(size_t i) const { return classes_[i]; }
+  const index_type& cleft_child(size_t i) const { return left_child_[i]; }
+  const index_type& cright_child(size_t i) const { return right_child_[i]; }
+  const value_type& cthreshold(size_t i) const { return threshold_[i]; }
+  const index_type& cfeatures(size_t i) const { return features_[i]; }
+  const value_type& cvalues(size_t i, size_t j) const {
+    return values_[i * nclasses() + j];
+  }
   const index_type& cfeature_names_sizes(size_t i) const {
     return feature_names_sizes_[i];
   }

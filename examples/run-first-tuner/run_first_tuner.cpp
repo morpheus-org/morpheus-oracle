@@ -22,6 +22,7 @@
  */
 
 #include <Morpheus_Oracle.hpp>
+#include <Morpheus_Core.hpp>
 
 #if defined(EXAMPLE_ENABLE_SERIAL)
 using Space = Morpheus::Serial;
@@ -35,6 +36,81 @@ using Space = Morpheus::HIP;
 
 using backend       = typename Space::backend;
 using DynamicMatrix = Morpheus::DynamicMatrix<double, backend>;
+using Vector        = Morpheus::DenseVector<double, backend>;
+
+template <typename ExecSpace, typename Vector>
+struct RunFirstFunctor : public Morpheus::Oracle::RunFirstFunctorBase<
+                             RunFirstFunctor<ExecSpace, Vector>> {
+  RunFirstFunctor(Vector& x, Vector& y, bool init = true)
+      : _status(Morpheus::CONV_SUCCESS), _x(x), _y(y), _init(init) {}
+
+  RunFirstFunctor(size_t nrows, size_t ncols, bool init = true)
+      : _status(Morpheus::CONV_SUCCESS),
+        _x(ncols, 2.0),
+        _y(nrows, 0),
+        _init(init) {}
+
+  template <typename Data>
+  auto clone(const Data& data,
+             typename std::enable_if_t<
+                 Morpheus::is_dynamic_matrix_container_v<Data>>* = nullptr) {
+    using MemSpace = typename Data::memory_space;
+
+    auto mirror = Morpheus::create_mirror<MemSpace>(data);
+    Morpheus::copy(data, mirror);
+
+    return mirror;
+  }
+
+  template <typename Dev>
+  auto clone_host(
+      Dev& dev,
+      typename std::enable_if_t<Morpheus::is_dynamic_matrix_container_v<Dev>>* =
+          nullptr) {
+    auto mirror_h = Morpheus::create_mirror_container(dev);
+    Morpheus::copy(dev, mirror_h);
+
+    return mirror_h;
+  }
+
+  template <typename Tuner, typename Dev, typename Host>
+  bool state_transition(const Tuner& tuner, Dev& dev, Host& host,
+                        int& current_state) {
+    if (((current_state == static_cast<int>(Morpheus::DIA_FORMAT)) ||
+         (current_state == static_cast<int>(Morpheus::HDC_FORMAT))) &&
+        (dev.nrows() != dev.ncols())) {
+      _status = Morpheus::DYNAMIC_TO_PROXY;
+    } else if (current_state != tuner.state_count()) {
+      // Convert only when we start a new state_count
+      _status = Morpheus::convert<Morpheus::Serial>(host, tuner.state_count());
+      if (_status == Morpheus::CONV_SUCCESS) {
+        dev.activate(host.active_index());
+        dev.resize(host);
+        Morpheus::copy(host, dev);
+        current_state = tuner.state_count();
+      }
+    }
+
+    return _status == Morpheus::CONV_SUCCESS ? true : false;
+  }
+
+  template <typename Dev>
+  void run(const Dev& dev,
+           typename std::enable_if_t<
+               Morpheus::is_dynamic_matrix_container_v<Dev> &&
+               Morpheus::has_access_v<ExecSpace, Dev, Vector>>* = nullptr) {
+    Morpheus::multiply<ExecSpace>(dev, _x, _y, _init);
+  }
+
+  double postprocess_runtime(double runtime) { return runtime; }
+
+  void set_multiply_init(bool init) { _init = init; }
+
+ private:
+  Morpheus::conversion_error_e _status;
+  Vector _x, _y;
+  bool _init;
+};
 
 int main(int argc, char* argv[]) {
   Morpheus::initialize(argc, argv);
@@ -70,9 +146,11 @@ int main(int argc, char* argv[]) {
     DynamicMatrix A = Morpheus::create_mirror<Space>(Ah);
     Morpheus::copy(Ah, A);
 
-    Morpheus::Oracle::RunFirstTuner tuner(reps, verbose);
+    Morpheus::Oracle::RunFirstTuner tuner(Morpheus::NFORMATS, reps, verbose);
 
-    Morpheus::Oracle::tune_multiply<Space>(A, tuner);
+    RunFirstFunctor<Space, Vector> f(A.nrows(), A.ncols());
+
+    Morpheus::Oracle::tune(A, f, tuner);
     tuner.print();
   }
   Morpheus::finalize();

@@ -27,7 +27,8 @@
 #include <MorpheusOracle_DecisionTree.hpp>
 #include <MorpheusOracle_Loader.hpp>
 #include <MorpheusOracle_Utils.hpp>
-#include <Morpheus_Core.hpp>
+
+#include <vector>
 
 namespace Morpheus {
 namespace Oracle {
@@ -67,17 +68,12 @@ class RandomForest {
   /*! A one-dimensional vector of DecisionTrees */
   using tree_vector = std::vector<tree_type>;
   /*! A one-dimensional vector of doubles */
-  using scalar_vector = Morpheus::DenseVector<value_type, Kokkos::HostSpace>;
+  using scalar_vector = std::vector<value_type>;
   /*! A one-dimensional vector of integers */
-  using index_vector = Morpheus::DenseVector<index_type, Kokkos::HostSpace>;
+  using index_vector = std::vector<index_type>;
   /*! A one-dimensional vector of strings */
   using string_vector = std::vector<string_type>;
 
-  /**
-   * @brief Construct a new DecisionTree object
-   *
-   * @param filename Absolute path to the filename to read the tree from.
-   */
   RandomForest() = default;
 
   RandomForest(const std::string& filename, const bool binary = true,
@@ -127,8 +123,8 @@ class RandomForest {
     Morpheus::Oracle::load(filename, *this, binary, feature_names);
   }
 
-  index_type evaluate(const scalar_vector& sample) {
-    using backend = typename index_vector::backend;
+  template <typename SampleVector>
+  index_type evaluate(const SampleVector& sample) {
     index_vector voters(estimators().size(), 0);
     for (size_type i = 0; i < estimators().size(); i++) {
       voters[i] = estimators(i).recurse(sample);
@@ -136,14 +132,17 @@ class RandomForest {
 
     // Majority voting to determine the selected class
     index_vector occurrences(nclasses(), 0);
-    Morpheus::count_occurences<backend>(voters, occurrences);
+    // Count Occurences
+    for (size_t i = 0; i < voters.size(); i++) {
+      occurrences[voters[i]]++;
+    }
 
     // find index with the largest value
     index_type idx = 0;
     index_type max = std::numeric_limits<index_type>::min();
     for (size_type i = 0; i < nclasses(); i++) {
-      idx = max < occurrences(i) ? i : idx;
-      max = max < occurrences(i) ? occurrences(i) : max;
+      idx = max < occurrences[i] ? i : idx;
+      max = max < occurrences[i] ? occurrences[i] : max;
     }
 
     return idx;

@@ -24,8 +24,7 @@
 #ifndef MORPHEUSORACLE_RUNFIRSTTUNER_HPP
 #define MORPHEUSORACLE_RUNFIRSTTUNER_HPP
 
-#include <Morpheus_Core.hpp>
-
+#include <vector>
 #include <iomanip>
 #include <iostream>
 #include <limits>
@@ -94,13 +93,13 @@ namespace Oracle {
 class RunFirstTuner {
  public:
   /*! A two-dimensional vector of doubles */
-  using vec2d = Morpheus::DenseMatrix<double, size_t, Kokkos::HostSpace>;
+  using vec2d = std::vector<double>;
   /*! A one-dimensional vector of doubles */
-  using vec = Morpheus::DenseVector<double, Kokkos::HostSpace>;
+  using vec = std::vector<double>;
 
-  /*! Enum value specifying the state of the tuner when the optimum format has
+  /*! Value specifying the state of the tuner when the optimum state has
    * not been yet selected*/
-  enum format_state { INVALID_FORMAT_STATE = -1 };
+  static const int INVALID_STATE = -1;
 
   /**
    * @brief Construct a new RunFirstTuner object
@@ -108,25 +107,25 @@ class RunFirstTuner {
    * @param rep_limit Number of repetitions to run the tuner for.
    * @param verbose  Whether to print verbose messages.
    */
-  RunFirstTuner(const size_t rep_limit = 10, const bool verbose = false)
-      : timings_(Morpheus::NFORMATS, rep_limit, 0),
-        max_timings_(Morpheus::NFORMATS, 0),
-        avg_timings_(Morpheus::NFORMATS, 0),
-        min_timings_(Morpheus::NFORMATS, 0),
-        format_id_(INVALID_FORMAT_STATE),
-        format_count_(0),
-        nformats_(Morpheus::NFORMATS),
+  RunFirstTuner(const size_t nstates, const size_t rep_limit = 10,
+                const bool verbose = false)
+      : timings_(nstates * rep_limit, 0),
+        max_timings_(nstates, 0),
+        avg_timings_(nstates, 0),
+        min_timings_(nstates, 0),
+        state_id_(INVALID_STATE),
+        state_count_(0),
+        nstates_(nstates),
         rep_limit_(rep_limit),
         rep_count_(0),
         verbose_(verbose) {
     if (verbose) {
-      std::cout << "RunFirstTuner :: Tuner will run for " << nformats()
-                << " formats.\n";
-      std::cout << "                 "
-                << "Each format tunes for " << repetition_limit()
-                << " repetitions.\n";
+      std::cout << "RunFirstTuner :: Tuner will run for " << nstates_
+                << " states.\n";
+      std::cout << "                 Each state tunes for "
+                << repetition_limit() << " repetitions.\n";
 
-      std::cout << std::setw(10) << "Format ID";
+      std::cout << std::setw(10) << "State ID";
       std::cout << std::setw(3) << "|";
       std::cout << std::setw(12) << "Repetition" << std::endl;
 
@@ -144,7 +143,7 @@ class RunFirstTuner {
     if (repetition_count() < repetition_limit() - 1) {
       rep_count_++;
     } else {
-      format_count_++;
+      state_count_++;
       rep_count_ = 0;
     }
   }
@@ -155,7 +154,7 @@ class RunFirstTuner {
    * @param runtime Run-time of the last step.
    */
   void register_run(double runtime) {
-    timings_(format_count(), repetition_count()) = runtime;
+    timings_[state_count() * repetition_limit() + repetition_count()] = runtime;
   }
 
   /**
@@ -166,19 +165,19 @@ class RunFirstTuner {
    */
   bool finished() {
     if (verbose_) {
-      std::cout << std::setw(10) << format_count();
+      std::cout << std::setw(10) << state_count();
       std::cout << std::setw(3) << "|";
       std::cout << std::setw(12) << repetition_count();
       std::cout << std::endl;
     }
 
-    bool completed = format_count() >= nformats() ? true : false;
+    bool completed = state_count() >= nstates() ? true : false;
 
     if (completed) {
       compute_max_timings_();
       compute_avg_timings_();
       compute_min_timings_();
-      compute_best_format_id_();
+      compute_best_state_id_();
     }
     return completed;
   }
@@ -188,14 +187,14 @@ class RunFirstTuner {
    *
    */
   void reset() {
-    format_id_    = INVALID_FORMAT_STATE;
-    format_count_ = 0;
-    rep_count_    = 0;
-    verbose_      = false;
-    timings_.assign(nformats_, rep_limit_, 0);
-    max_timings_.assign(nformats_, -std::numeric_limits<double>::max());
-    avg_timings_.assign(nformats_, -std::numeric_limits<double>::max());
-    min_timings_.assign(nformats_, -std::numeric_limits<double>::max());
+    state_id_    = INVALID_STATE;
+    state_count_ = 0;
+    rep_count_   = 0;
+    verbose_     = false;
+    timings_.assign(timings_.size(), 0);
+    max_timings_.assign(nstates_, -std::numeric_limits<double>::max());
+    avg_timings_.assign(nstates_, -std::numeric_limits<double>::max());
+    min_timings_.assign(nstates_, -std::numeric_limits<double>::max());
   }
 
   /**
@@ -205,33 +204,33 @@ class RunFirstTuner {
    *
    */
   void print() {
-    if ((repetition_count() == 0) && (format_count() == 0)) {
+    if ((repetition_count() == 0) && (state_count() == 0)) {
       std::cout << "Run-first Tuner configured with repetition limit "
                 << repetition_limit() << std::endl;
       return;
     }
 
-    if (format_count() >= nformats()) {
+    if (state_count() >= nstates()) {
       using namespace std;
       cout << "Tuner executed " << repetition_limit() << " repetitions and "
-           << "optimized for " << nformats() << " formats!" << endl;
+           << "optimized for " << nstates() << " states!" << endl;
       cout << endl;
       cout << "Tuner statistics:" << endl;
       cout << "-----------------" << endl;
-      cout << setw(10) << "Format ID\t";
+      cout << setw(10) << "State ID\t";
       cout << setw(10) << "tmin\t";
       cout << setw(10) << "tmax\t";
       cout << setw(10) << "tavg\t" << endl;
 
-      for (int i = 0; i < nformats_; i++) {
+      for (int i = 0; i < nstates_; i++) {
         cout << setw(10) << i;
-        cout << "\t" << setw(10) << setprecision(7) << min_timings_(i);
-        cout << "\t" << setw(10) << setprecision(7) << max_timings_(i);
-        cout << "\t" << setw(10) << setprecision(7) << avg_timings_(i);
+        cout << "\t" << setw(10) << setprecision(7) << min_timings_[i];
+        cout << "\t" << setw(10) << setprecision(7) << max_timings_[i];
+        cout << "\t" << setw(10) << setprecision(7) << avg_timings_[i];
         cout << endl;
       }
 
-      cout << "Optimum Format ID: " << format_id() << endl;
+      cout << "Optimum State ID: " << state_id() << endl;
     } else {
       throw std::runtime_error(
           "Tuner is in inconsistent state. Requesting to print the summary can "
@@ -241,61 +240,61 @@ class RunFirstTuner {
 
   /**
    * @brief Provides a two-dimensional vector that contains the timings obtained
-   * at each step of the tuner and for each format.
+   * at each step of the tuner and for each state.
    *
-   * @return vec2d& A two-dimensional vector containing timings of each format.
+   * @return vec2d& A two-dimensional vector containing timings of each state.
    */
   vec2d& timings() { return timings_; }
 
   /**
    * @brief Provides a one-dimensional vector that contains the maximum timings
-   * for each format.
+   * for each state.
    *
    * @return vec& A one-dimensional vector containing max timings of each
-   * format.
+   * state.
    */
   vec& max_timings() { return max_timings_; }
 
   /**
    * @brief Provides a one-dimensional vector that contains the minimum timings
-   * for each format.
+   * for each state.
    *
    * @return vec& A one-dimensional vector containing minimum timings of each
-   * format.
+   * state.
    */
   vec& min_timings() { return min_timings_; }
 
   /**
    * @brief Provides a one-dimensional vector that contains the average timings
-   * for each format.
+   * for each state.
    *
    * @return vec& A one-dimensional vector containing average timings of each
-   * format.
+   * state.
    */
   vec& avg_timings() { return avg_timings_; }
 
   /**
-   * @brief Provides the current format index the tuner optimizes for.
+   * @brief Provides the current state index the tuner optimizes for.
    *
-   * @return int Current format index.
+   * @return int Current state index.
    */
-  int format_count() const { return format_count_; }
+  int state_count() const { return state_count_; }
 
   /**
-   * @brief Provides the total number of formats the tuner optimizes for.
+   * @brief Provides the total number of states the tuner optimizes for.
    *
-   * @return int Total number of formats.
+   * @return int Total number of states.
    */
-  int nformats() const { return nformats_; }
+  int nstates() const { return nstates_; }
 
   /**
-   * @brief Provides the index of the optimum format selected by the tuner. Note
-   * that until the tuner finishes the tuning process, the format ID is set to
-   * \p INVALID_FORMAT_STATE.
+   * @brief Provides the index of the optimum state selected by the tuner. Note
+   * that until the tuner finishes the tuning process, the state ID is set to
+   * \p INVALID_STATE.
    *
-   * @return int Optimum format index.
+   * @return int Optimum state index.
    */
-  int format_id() const { return format_id_; }
+  int state_id() const { return state_id_; }
 
   /**
    * @brief Provides the current repetition count the tuner runs for.
@@ -335,47 +334,47 @@ class RunFirstTuner {
 
   /*! \cond */
  private:
-  void compute_best_format_id_() {
-    // best format the one with the minimum average
-    double mint = avg_timings_(0);
-    format_id_  = 0;
-    for (int i = 0; i < nformats(); i++) {
-      if (avg_timings_(i) < mint) {
-        mint       = avg_timings_(i);
-        format_id_ = i;
+  void compute_best_state_id_() {
+    // best state the one with the minimum average
+    double mint = avg_timings_[0];
+    state_id_   = 0;
+    for (int i = 0; i < nstates(); i++) {
+      if (avg_timings_[i] < mint) {
+        mint      = avg_timings_[i];
+        state_id_ = i;
       }
     }
   }
 
   void compute_max_timings_() {
-    for (int i = 0; i < nformats_; i++) {
+    for (int i = 0; i < nstates_; i++) {
       double maxt = std::numeric_limits<double>::min();
       for (size_t j = 0; j < rep_limit_; j++) {
-        if (timings_(i, j) > maxt) {
-          max_timings_(i) = timings_(i, j);
-          maxt            = timings_(i, j);
+        if (timings_[i * rep_limit_ + j] > maxt) {
+          max_timings_[i] = timings_[i * rep_limit_ + j];
+          maxt            = timings_[i * rep_limit_ + j];
         }
       }
     }
   }
 
   void compute_avg_timings_() {
-    for (int i = 0; i < nformats_; i++) {
+    for (int i = 0; i < nstates_; i++) {
       double sumt = 0.0;
       for (size_t j = 0; j < rep_limit_; j++) {
-        sumt += timings_(i, j);
+        sumt += timings_[i * rep_limit_ + j];
       }
-      avg_timings_(i) = sumt / (double)rep_limit_;
+      avg_timings_[i] = sumt / (double)rep_limit_;
     }
   }
 
   void compute_min_timings_() {
-    for (int i = 0; i < nformats_; i++) {
+    for (int i = 0; i < nstates_; i++) {
       double mint = std::numeric_limits<double>::max();
       for (size_t j = 0; j < rep_limit_; j++) {
-        if (timings_(i, j) < mint) {
-          min_timings_(i) = timings_(i, j);
-          mint            = timings_(i, j);
+        if (timings_[i * rep_limit_ + j] < mint) {
+          min_timings_[i] = timings_[i * rep_limit_ + j];
+          mint            = timings_[i * rep_limit_ + j];
         }
       }
     }
@@ -385,9 +384,9 @@ class RunFirstTuner {
   vec max_timings_;
   vec avg_timings_;
   vec min_timings_;
-  int format_id_;
-  int format_count_;
-  int nformats_;
+  int state_id_;
+  int state_count_;
+  int nstates_;
   size_t rep_limit_;
   size_t rep_count_;
   bool verbose_;

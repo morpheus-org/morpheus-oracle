@@ -24,16 +24,32 @@
 #ifndef MORPHEUSORACLE_IMPL_LOADER_UTILS_HPP
 #define MORPHEUSORACLE_IMPL_LOADER_UTILS_HPP
 
-#include <Morpheus_Core.hpp>
-
 #include <string>
 #include <fstream>
 #include <sstream>
 #include <iostream>
+#include <exception>
 
 namespace Morpheus {
 namespace Oracle {
 namespace Impl {
+
+void tokenize(std::vector<std::string>& tokens, const std::string& str,
+              const std::string& delimiters = "\n\r\t ") {
+  // Skip delimiters at beginning.
+  std::string::size_type lastPos = str.find_first_not_of(delimiters, 0);
+  // Find first "non-delimiter".
+  std::string::size_type pos = str.find_first_of(delimiters, lastPos);
+
+  while (std::string::npos != pos || std::string::npos != lastPos) {
+    // Found a token, add it to the vector.
+    tokens.push_back(str.substr(lastPos, pos - lastPos));
+    // Skip delimiters.  Note the "not_of"
+    lastPos = str.find_first_not_of(delimiters, pos);
+    // Find next "non-delimiter"
+    pos = str.find_first_of(delimiters, lastPos);
+  }
+}
 
 template <typename Stream>
 void skip_comment(Stream& input, const std::string delimiter = "#") {
@@ -60,12 +76,12 @@ void load_array(std::vector<std::string>& vec, Stream& input,
   std::getline(input, line);
 
   std::vector<std::string> tokens;
-  Morpheus::IO::Impl::tokenize(tokens, line);
+  Impl::tokenize(tokens, line);
 
   if (tokens.size() != vec.size()) {
-    throw Morpheus::IOException("Entries (" + std::to_string(tokens.size()) +
-                                ") exceed vector size (" +
-                                std::to_string(vec.size()) + ").");
+    throw std::runtime_error("Entries (" + std::to_string(tokens.size()) +
+                             ") exceed vector size (" +
+                             std::to_string(vec.size()) + ").");
   }
 
   for (size_type i = 0; i < tokens.size(); i++) {
@@ -75,10 +91,7 @@ void load_array(std::vector<std::string>& vec, Stream& input,
 
 template <typename Vector, typename Stream>
 void load_array(Vector& vec, Stream& input, bool skip_comments = true,
-                const std::string delimiter = "#",
-                typename std::enable_if_t<
-                    Morpheus::is_dense_vector_format_container_v<Vector> &&
-                    Morpheus::has_host_memory_space_v<Vector>>* = nullptr) {
+                const std::string delimiter = "#") {
   using size_type = typename Vector::size_type;
 
   if (skip_comments) {
@@ -89,12 +102,12 @@ void load_array(Vector& vec, Stream& input, bool skip_comments = true,
   std::getline(input, line);
 
   std::vector<std::string> tokens;
-  Morpheus::IO::Impl::tokenize(tokens, line);
+  Impl::tokenize(tokens, line);
 
   if (tokens.size() != vec.size()) {
-    throw Morpheus::IOException("Entries (" + std::to_string(tokens.size()) +
-                                ") exceed vector size (" +
-                                std::to_string(vec.size()) + ").");
+    throw std::runtime_error("Entries (" + std::to_string(tokens.size()) +
+                             ") exceed vector size (" +
+                             std::to_string(vec.size()) + ").");
   }
 
   for (size_type i = 0; i < tokens.size(); i++) {
@@ -103,11 +116,9 @@ void load_array(Vector& vec, Stream& input, bool skip_comments = true,
 }
 
 template <typename Matrix, typename Stream>
-void load_array(Matrix& mat, Stream& input, bool skip_comments = true,
-                const std::string delimiter = "#",
-                typename std::enable_if_t<
-                    Morpheus::is_dense_matrix_format_container_v<Matrix> &&
-                    Morpheus::has_host_memory_space_v<Matrix>>* = nullptr) {
+void load_2d_array(Matrix& mat, size_t dim1, size_t dim2, Stream& input,
+                   bool skip_comments          = true,
+                   const std::string delimiter = "#") {
   using size_type = typename Matrix::size_type;
 
   if (skip_comments) {
@@ -115,21 +126,21 @@ void load_array(Matrix& mat, Stream& input, bool skip_comments = true,
   }
 
   size_type row = 0;
-  while (row < mat.nrows() && !input.eof()) {
+  while (row < dim1 && !input.eof()) {
     std::string line;
     std::getline(input, line);
 
     std::vector<std::string> tokens;
-    Morpheus::IO::Impl::tokenize(tokens, line);
+    Impl::tokenize(tokens, line);
 
-    if (tokens.size() != mat.ncols()) {
-      throw Morpheus::IOException("Entries (" + std::to_string(tokens.size()) +
-                                  ") exceed vector size (" +
-                                  std::to_string(mat.ncols()) + ").");
+    if (tokens.size() != dim2) {
+      throw std::runtime_error("Entries (" + std::to_string(tokens.size()) +
+                               ") exceed vector size (" + std::to_string(dim2) +
+                               ").");
     }
 
     for (size_type i = 0; i < tokens.size(); i++) {
-      std::istringstream(tokens[i]) >> mat(row, i);
+      std::istringstream(tokens[i]) >> mat[row * dim2 + i];
     }
     row++;
   }

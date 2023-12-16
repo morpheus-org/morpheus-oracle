@@ -62,13 +62,6 @@ if(MorpheusOracle_INSTALL_TESTING)
   morpheusoracle_add_test_directories(tests)
   morpheusoracle_add_example_directories(examples)
 else()
-  # Regular build, not install testing Do all the regular option processing
-  if(NOT MORPHEUSORACLE_HAS_PARENT)
-    # This is a standalone build
-    find_package(Morpheus REQUIRED)
-    message(STATUS "Found Morpheus at ${Morpheus_DIR}")
-  endif()
-
   add_subdirectory(src)
 
   if(MorpheusOracle_ENABLE_TESTS OR MorpheusOracle_ENABLE_EXAMPLES)

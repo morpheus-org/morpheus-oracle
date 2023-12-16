@@ -46,15 +46,15 @@ void print_matrix(const Container& c, size_t size1, size_t size2,
   for (size_t i = 0; i < size1 - 1; i++) {
     stream << std::setw(i == 0 ? 0 : width) << "[";
     for (size_t j = 0; j < size2 - 1; j++) {
-      stream << c(i, j) << ", ";
+      stream << c[i * size2 + j] << ", ";
     }
-    stream << c(i, size2 - 1) << "]," << std::endl;
+    stream << c[i * size2 + (size2 - 1)] << "]," << std::endl;
   }
   stream << std::setw(width) << "[";
   for (size_t j = 0; j < size2 - 1; j++) {
-    stream << c(size1 - 1, j) << ", ";
+    stream << c[(size1 - 1) * size2 + j] << ", ";
   }
-  stream << c(size1 - 1, size2 - 1) << "]]" << std::endl;
+  stream << c[(size1 - 1) * size2 + (size2 - 1)] << "]]" << std::endl;
 }
 
 }  // namespace Oracle

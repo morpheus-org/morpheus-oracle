@@ -25,7 +25,6 @@
 #define MORPHEUSORACLE_IMPL_TUNE_IMPL_HPP
 
 #include <impl/RunFirst/MorpheusOracle_Tune_Impl.hpp>
-#include <impl/DecisionTree/MorpheusOracle_Tune_Impl.hpp>
-#include <impl/RandomForest/MorpheusOracle_Tune_Impl.hpp>
+#include <impl/ML/MorpheusOracle_Tune_Impl.hpp>
 
 #endif  // MORPHEUSORACLE_TUNE_HPP

@@ -7,6 +7,4 @@ include(CMakeFindDependencyMacro)
 
 @MORPHEUSORACLE_TPL_EXPORTS@
 
-find_dependency(Morpheus HINTS @Morpheus_DIR@)
-
 INCLUDE("${MorpheusOracle_CMAKE_DIR}/MorpheusOracleTargets.cmake")
