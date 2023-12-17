@@ -11,8 +11,7 @@ elseif(Morpheus_ENABLE_HIP)
   target_compile_definitions(MorpheusOracle_decision_tree_tuner_HIP PRIVATE EXAMPLE_ENABLE_HIP)
   target_link_libraries(MorpheusOracle_decision_tree_tuner_HIP PUBLIC Morpheus::morpheus)
 elseif(Morpheus_ENABLE_OPENMP)
-  morpheusoracle_add_test_executable(decision_tree_tuner_OPENMP SOURCES
-                                decision_tree_tuner.cpp)
+  morpheusoracle_add_test_executable(decision_tree_tuner_OPENMP SOURCES decision_tree_tuner.cpp)
   target_compile_definitions(MorpheusOracle_decision_tree_tuner_OPENMP
                              PRIVATE EXAMPLE_ENABLE_OPENMP)
   target_link_libraries(MorpheusOracle_decision_tree_tuner_OPENMP PUBLIC Morpheus::morpheus)

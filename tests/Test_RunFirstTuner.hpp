@@ -25,84 +25,42 @@
 #define TEST_ORACLE_TEST_RUNFIRSTTUNER_HPP
 
 #include <Morpheus_Oracle.hpp>
-
-TEST(RunFirstTunerTest, DefaultConstruction) {
-  const int reps     = 10;
-  const int nfmts    = Morpheus::NFORMATS;
-  const bool verbose = false;
-
-  Morpheus::Oracle::RunFirstTuner tuner;
-
-  // Check timings shape
-  EXPECT_EQ(tuner.timings().nrows(), nfmts);
-  EXPECT_EQ(tuner.timings().ncols(), reps);
-  // Check timings values
-  for (size_t i = 0; i < tuner.timings().nrows(); i++) {
-    for (size_t j = 0; j < tuner.timings().ncols(); j++) {
-      EXPECT_EQ(tuner.timings()(i, j), 0);
-    }
-  }
-
-  // Check maximum timings shape
-  EXPECT_EQ(tuner.max_timings().size(), nfmts);
-  // Check minimum timings shape
-  EXPECT_EQ(tuner.min_timings().size(), nfmts);
-  // Check average timings shape
-  EXPECT_EQ(tuner.avg_timings().size(), nfmts);
-  // Check values of each timing vector
-  for (auto i = 0; i < nfmts; i++) {
-    EXPECT_EQ(tuner.max_timings()(i), 0);
-    EXPECT_EQ(tuner.min_timings()(i), 0);
-    EXPECT_EQ(tuner.avg_timings()(i), 0);
-  }
-
-  EXPECT_EQ(tuner.format_id(),
-            Morpheus::Oracle::RunFirstTuner::INVALID_FORMAT_STATE);
-
-  EXPECT_EQ(tuner.format_count(), 0);
-  EXPECT_EQ(tuner.nformats(), nfmts);
-
-  EXPECT_EQ(tuner.repetition_count(), 0);
-  EXPECT_EQ(tuner.repetition_limit(), reps);
-
-  EXPECT_EQ(tuner.is_verbose(), verbose);
-}
+#include <gtest/gtest.h>
 
 TEST(RunFirstTunerTest, Construction) {
   const int reps     = 5;
-  const int nfmts    = Morpheus::NFORMATS;
+  const int nstates  = 10;
   const bool verbose = true;
+  int invalid_state  = Morpheus::Oracle::RunFirstTuner::INVALID_STATE;
 
-  Morpheus::Oracle::RunFirstTuner tuner(reps, verbose);
+  Morpheus::Oracle::RunFirstTuner tuner(nstates, reps, verbose);
 
   // Check timings shape
-  EXPECT_EQ(tuner.timings().nrows(), nfmts);
-  EXPECT_EQ(tuner.timings().ncols(), reps);
+  EXPECT_EQ(tuner.timings().size(), nstates * reps);
   // Check timings values
-  for (size_t i = 0; i < tuner.timings().nrows(); i++) {
-    for (size_t j = 0; j < tuner.timings().ncols(); j++) {
-      EXPECT_EQ(tuner.timings()(i, j), 0);
+  for (size_t i = 0; i < nstates; i++) {
+    for (size_t j = 0; j < reps; j++) {
+      EXPECT_EQ(tuner.timings()[i * reps + j], 0);
     }
   }
 
   // Check maximum timings shape
-  EXPECT_EQ(tuner.max_timings().size(), nfmts);
+  EXPECT_EQ(tuner.max_timings().size(), nstates);
   // Check minimum timings shape
-  EXPECT_EQ(tuner.min_timings().size(), nfmts);
+  EXPECT_EQ(tuner.min_timings().size(), nstates);
   // Check average timings shape
-  EXPECT_EQ(tuner.avg_timings().size(), nfmts);
+  EXPECT_EQ(tuner.avg_timings().size(), nstates);
   // Check values of each timing vector
-  for (auto i = 0; i < nfmts; i++) {
-    EXPECT_EQ(tuner.max_timings()(i), 0);
-    EXPECT_EQ(tuner.min_timings()(i), 0);
-    EXPECT_EQ(tuner.avg_timings()(i), 0);
+  for (auto i = 0; i < nstates; i++) {
+    EXPECT_EQ(tuner.max_timings()[i], 0);
+    EXPECT_EQ(tuner.min_timings()[i], 0);
+    EXPECT_EQ(tuner.avg_timings()[i], 0);
   }
 
-  EXPECT_EQ(tuner.format_id(),
-            Morpheus::Oracle::RunFirstTuner::INVALID_FORMAT_STATE);
+  EXPECT_EQ(tuner.state_id(), invalid_state);
 
-  EXPECT_EQ(tuner.format_count(), 0);
-  EXPECT_EQ(tuner.nformats(), nfmts);
+  EXPECT_EQ(tuner.state_count(), 0);
+  EXPECT_EQ(tuner.nstates(), nstates);
 
   EXPECT_EQ(tuner.repetition_count(), 0);
   EXPECT_EQ(tuner.repetition_limit(), reps);
@@ -111,56 +69,67 @@ TEST(RunFirstTunerTest, Construction) {
 }
 
 TEST(RunFirstTunerTest, Step) {
-  Morpheus::Oracle::RunFirstTuner tuner;
+  const int reps    = 5;
+  const int nstates = 3;
+  Morpheus::Oracle::RunFirstTuner tuner(nstates, reps);
 
-  for (int fmt = 0; fmt < tuner.nformats(); fmt++) {
+  for (int state = 0; state < tuner.nstates(); state++) {
     for (size_t rep = 0; rep < tuner.repetition_limit(); rep++) {
-      EXPECT_EQ(tuner.format_count(), fmt);
+      EXPECT_EQ(tuner.state_count(), state);
       EXPECT_EQ(tuner.repetition_count(), rep);
       ++tuner;
     }
   }
-  EXPECT_EQ(tuner.format_count(), tuner.nformats());
+  EXPECT_EQ(tuner.state_count(), tuner.nstates());
   EXPECT_EQ(tuner.repetition_count(), 0);
 }
 
 TEST(RunFirstTunerTest, Finish) {
-  Morpheus::Oracle::RunFirstTuner tuner;
+  const int reps    = 5;
+  const int nstates = 3;
+  int invalid_state = Morpheus::Oracle::RunFirstTuner::INVALID_STATE;
 
-  for (int fmt = 0; fmt < tuner.nformats(); fmt++) {
+  Morpheus::Oracle::RunFirstTuner tuner(nstates, reps);
+
+  for (int state = 0; state < tuner.nstates(); state++) {
     for (size_t rep = 0; rep < tuner.repetition_limit(); rep++) {
       EXPECT_FALSE(tuner.finished());
       ++tuner;
     }
   }
   EXPECT_TRUE(tuner.finished());
-  EXPECT_NE(tuner.format_id(),
-            Morpheus::Oracle::RunFirstTuner::INVALID_FORMAT_STATE);
+  EXPECT_NE(tuner.state_id(), invalid_state);
 }
 
 TEST(RunFirstTunerTest, RegisterRun) {
-  Morpheus::Oracle::RunFirstTuner tuner;
+  const int reps    = 5;
+  const int nstates = 3;
+  Morpheus::Oracle::RunFirstTuner tuner(nstates, reps);
 
-  for (int fmt = 0; fmt < tuner.nformats(); fmt++) {
+  for (int state = 0; state < tuner.nstates(); state++) {
     for (size_t rep = 0; rep < tuner.repetition_limit(); rep++) {
-      double rt = tuner.repetition_count() + tuner.format_count();
+      double rt = tuner.repetition_count() + tuner.state_count();
       tuner.register_run(rt);
       ++tuner;
     }
   }
 
-  for (int fmt = 0; fmt < tuner.nformats(); fmt++) {
+  for (int state = 0; state < tuner.nstates(); state++) {
     for (size_t rep = 0; rep < tuner.repetition_limit(); rep++) {
-      EXPECT_EQ(tuner.timings()(fmt, rep), rep + fmt);
+      EXPECT_EQ(tuner.timings()[state * tuner.repetition_limit() + rep],
+                rep + state);
     }
   }
 }
 
 TEST(RunFirstTunerTest, FinishStats) {
-  Morpheus::Oracle::RunFirstTuner tuner;
+  const int reps    = 5;
+  const int nstates = 3;
+
+  Morpheus::Oracle::RunFirstTuner tuner(nstates, reps);
 
   while (!tuner.finished()) {
-    double rt = tuner.repetition_count() + tuner.format_count();
+    double rt = tuner.repetition_count() + tuner.state_count();
     tuner.register_run(rt);
     ++tuner;
   }
@@ -171,24 +140,26 @@ TEST(RunFirstTunerTest, FinishStats) {
     repsum += i;
   }
 
-  for (int fmt = 0; fmt < tuner.nformats(); fmt++) {
-    EXPECT_EQ(tuner.min_timings()(fmt), fmt);
-    EXPECT_EQ(tuner.max_timings()(fmt), (tuner.repetition_limit() - 1) + fmt);
-    EXPECT_EQ(
-        tuner.avg_timings()(fmt),
-        (repsum + (tuner.repetition_limit() * fmt)) / tuner.repetition_limit());
+  for (int state = 0; state < tuner.nstates(); state++) {
+    EXPECT_EQ(tuner.min_timings()[state], state);
+    EXPECT_EQ(tuner.max_timings()[state],
+              (tuner.repetition_limit() - 1) + state);
+    EXPECT_EQ(tuner.avg_timings()[state],
+              (repsum + (tuner.repetition_limit() * state)) /
+                  tuner.repetition_limit());
   }
 }
 
 TEST(RunFirstTunerTest, Reset) {
   const int reps     = 5;
-  const int nfmts    = Morpheus::NFORMATS;
+  const int nstates  = 10;
   const bool verbose = false;
+  int invalid_state  = Morpheus::Oracle::RunFirstTuner::INVALID_STATE;
 
-  Morpheus::Oracle::RunFirstTuner tuner(reps, verbose);
+  Morpheus::Oracle::RunFirstTuner tuner(nstates, reps, verbose);
 
   while (!tuner.finished()) {
-    double rt = tuner.repetition_count() + tuner.format_count();
+    double rt = tuner.repetition_count() + tuner.state_count();
     tuner.register_run(rt);
     ++tuner;
   }
@@ -196,33 +167,31 @@ TEST(RunFirstTunerTest, Reset) {
   tuner.reset();
 
   // Check timings shape
-  EXPECT_EQ(tuner.timings().nrows(), nfmts);
-  EXPECT_EQ(tuner.timings().ncols(), reps);
+  EXPECT_EQ(tuner.timings().size(), nstates * reps);
   // Check timings values
-  for (size_t i = 0; i < tuner.timings().nrows(); i++) {
-    for (size_t j = 0; j < tuner.timings().ncols(); j++) {
-      EXPECT_EQ(tuner.timings()(i, j), 0);
+  for (size_t i = 0; i < nstates; i++) {
+    for (size_t j = 0; j < reps; j++) {
+      EXPECT_EQ(tuner.timings()[i * reps + j], 0);
     }
   }
 
   // Check maximum timings shape
-  EXPECT_EQ(tuner.max_timings().size(), nfmts);
+  EXPECT_EQ(tuner.max_timings().size(), nstates);
   // Check minimum timings shape
-  EXPECT_EQ(tuner.min_timings().size(), nfmts);
+  EXPECT_EQ(tuner.min_timings().size(), nstates);
   // Check average timings shape
-  EXPECT_EQ(tuner.avg_timings().size(), nfmts);
+  EXPECT_EQ(tuner.avg_timings().size(), nstates);
   // Check values of each timing vector
-  for (auto i = 0; i < nfmts; i++) {
-    EXPECT_EQ(tuner.max_timings()(i), -std::numeric_limits<double>::max());
-    EXPECT_EQ(tuner.min_timings()(i), -std::numeric_limits<double>::max());
-    EXPECT_EQ(tuner.avg_timings()(i), -std::numeric_limits<double>::max());
+  for (auto i = 0; i < nstates; i++) {
+    EXPECT_EQ(tuner.max_timings()[i], -std::numeric_limits<double>::max());
+    EXPECT_EQ(tuner.min_timings()[i], -std::numeric_limits<double>::max());
+    EXPECT_EQ(tuner.avg_timings()[i], -std::numeric_limits<double>::max());
   }
 
-  EXPECT_EQ(tuner.format_id(),
-            Morpheus::Oracle::RunFirstTuner::INVALID_FORMAT_STATE);
+  EXPECT_EQ(tuner.state_id(), invalid_state);
 
-  EXPECT_EQ(tuner.format_count(), 0);
-  EXPECT_EQ(tuner.nformats(), nfmts);
+  EXPECT_EQ(tuner.state_count(), 0);
+  EXPECT_EQ(tuner.nstates(), nstates);
 
   EXPECT_EQ(tuner.repetition_count(), 0);
   EXPECT_EQ(tuner.repetition_limit(), reps);

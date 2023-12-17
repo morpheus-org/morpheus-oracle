@@ -32,6 +32,9 @@ else()
   set(MORPHEUS_IS_SUBDIRECTORY FALSE)
 endif()
 
+# Enable C++17
+set(CMAKE_CXX_STANDARD 17)
+
 include(cmake/morpheusoracle_utils.cmake)
 
 option(BUILD_SHARED_LIBS "Build shared libraries" OFF)

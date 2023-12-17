@@ -29,27 +29,14 @@
 #include <sstream>
 #include <iostream>
 #include <exception>
+#include <vector>
 
 namespace Morpheus {
 namespace Oracle {
 namespace Impl {
 
 void tokenize(std::vector<std::string>& tokens, const std::string& str,
-              const std::string& delimiters = "\n\r\t ") {
-  // Skip delimiters at beginning.
-  std::string::size_type lastPos = str.find_first_not_of(delimiters, 0);
-  // Find first "non-delimiter".
-  std::string::size_type pos = str.find_first_of(delimiters, lastPos);
-
-  while (std::string::npos != pos || std::string::npos != lastPos) {
-    // Found a token, add it to the vector.
-    tokens.push_back(str.substr(lastPos, pos - lastPos));
-    // Skip delimiters.  Note the "not_of"
-    lastPos = str.find_first_not_of(delimiters, pos);
-    // Find next "non-delimiter"
-    pos = str.find_first_of(delimiters, lastPos);
-  }
-}
+              const std::string& delimiters = "\n\r\t ");
 
 template <typename Stream>
 void skip_comment(Stream& input, const std::string delimiter = "#") {
@@ -76,7 +63,7 @@ void load_array(std::vector<std::string>& vec, Stream& input,
   std::getline(input, line);
 
   std::vector<std::string> tokens;
-  Impl::tokenize(tokens, line);
+  Oracle::Impl::tokenize(tokens, line);
 
   if (tokens.size() != vec.size()) {
     throw std::runtime_error("Entries (" + std::to_string(tokens.size()) +
@@ -102,7 +89,7 @@ void load_array(Vector& vec, Stream& input, bool skip_comments = true,
   std::getline(input, line);
 
   std::vector<std::string> tokens;
-  Impl::tokenize(tokens, line);
+  Oracle::Impl::tokenize(tokens, line);
 
   if (tokens.size() != vec.size()) {
     throw std::runtime_error("Entries (" + std::to_string(tokens.size()) +
@@ -131,7 +118,7 @@ void load_2d_array(Matrix& mat, size_t dim1, size_t dim2, Stream& input,
     std::getline(input, line);
 
     std::vector<std::string> tokens;
-    Impl::tokenize(tokens, line);
+    Oracle::Impl::tokenize(tokens, line);
 
     if (tokens.size() != dim2) {
       throw std::runtime_error("Entries (" + std::to_string(tokens.size()) +

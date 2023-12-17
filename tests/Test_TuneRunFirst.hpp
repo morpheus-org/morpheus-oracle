@@ -25,63 +25,76 @@
 #define TEST_ORACLE_TEST_TUNE_RUNFIRST_HPP
 
 #include <Morpheus_Oracle.hpp>
+#include <gtest/gtest.h>
+
+#include <variant>
 
 TEST(TuneMultiply, RunFirstTuner) {
-  using backend       = typename TEST_CUSTOM_EXECSPACE::backend;
-  using DynamicMatrix = Morpheus::DynamicMatrix<double, backend>;
-  using Vector        = Morpheus::DenseVector<double, backend>;
-  using CsrMatrix     = Morpheus::CsrMatrix<double, backend>;
+  using Data = std::variant<double, float, int>;
 
-  Morpheus::Oracle::RunFirstTuner tuner(10, false);
-  DynamicMatrix A;
-  typename CsrMatrix::HostMirror Acsr_h(4, 3, 6);
+  struct RunFirstFunctor
+      : public Morpheus::Oracle::RunFirstFunctorBase<RunFirstFunctor> {
+    RunFirstFunctor() {}
 
-  // initialize matrix entries
-  Acsr_h.row_offsets(0) = 0;
-  Acsr_h.row_offsets(1) = 2;
-  Acsr_h.row_offsets(2) = 2;
-  Acsr_h.row_offsets(3) = 3;
-  Acsr_h.row_offsets(4) = 6;
+    auto clone(const Data& data) {
+      auto mirror = data;
 
-  Acsr_h.column_indices(0) = 0;
-  Acsr_h.values(0)         = 10;
-  Acsr_h.column_indices(1) = 2;
-  Acsr_h.values(1)         = 20;
-  Acsr_h.column_indices(2) = 2;
-  Acsr_h.values(2)         = 30;
-  Acsr_h.column_indices(3) = 0;
-  Acsr_h.values(3)         = 40;
-  Acsr_h.column_indices(4) = 1;
-  Acsr_h.values(4)         = 50;
-  Acsr_h.column_indices(5) = 2;
-  Acsr_h.values(5)         = 60;
+      return mirror;
+    }
 
-  CsrMatrix Acsr(4, 3, 6);
-  Morpheus::copy(Acsr_h, Acsr);
+    auto clone_host(Data& dev) {
+      auto mirror_h = dev;
 
-  A = Acsr;
+      return mirror_h;
+    }
 
-  Morpheus::Oracle::RunFirstMultiplyFunctor<backend, Vector> f(A.nrows(),
-                                                               A.ncols());
-  Morpheus::Oracle::tune(A, f, tuner);
+    bool state_transition(const Morpheus::Oracle::RunFirstTuner& tuner,
+                          Data& dev, Data& host, int& current_state) {
+      switch (current_state) {
+        case 0: host = 0.55f; break;
+        case 1: host = 2; break;
+        case 2: host = 6.76; break;
+        default: host = 6.76; break;
+      }
+      dev           = host;
+      current_state = tuner.state_count();
+
+      return true;
+    }
+
+    void run(const Data& dev) {
+      Data res;
+      std::visit([&](auto&& arg1, auto&& arg2) { arg1 = arg2 * arg2; }, res,
+                 dev);
+    }
+
+    double postprocess_runtime(double runtime) { return runtime; }
+  };
+
+  Morpheus::Oracle::RunFirstTuner tuner(3, 10, false);
+  RunFirstFunctor f;
+
+  Data input = 1.111;
+
+  Morpheus::Oracle::tune(input, f, tuner);
 
   EXPECT_TRUE(tuner.finished());
   // Check average timings were recorded
   for (size_t i = 0; i < tuner.avg_timings().size(); i++) {
-    EXPECT_GE(tuner.avg_timings()(i), 0.0);
+    EXPECT_GE(tuner.avg_timings()[i], 0.0);
   }
 
   // Figure out which format was the best on average
-  double mint        = tuner.avg_timings()(0);
-  int best_format_id = 0;
+  double mint       = tuner.avg_timings()[0];
+  int best_state_id = 0;
   for (size_t i = 0; i < tuner.avg_timings().size(); i++) {
-    if (tuner.avg_timings()(i) < mint) {
-      mint           = tuner.avg_timings()(i);
-      best_format_id = i;
+    if (tuner.avg_timings()[i] < mint) {
+      mint          = tuner.avg_timings()[i];
+      best_state_id = i;
     }
   }
   // Check if the tuner also got the same format index
-  EXPECT_EQ(best_format_id, tuner.format_id());
+  EXPECT_EQ(best_state_id, tuner.state_id());
 }
 
 #endif  // TEST_ORACLE_TEST_TUNE_RUNFIRST_HPP

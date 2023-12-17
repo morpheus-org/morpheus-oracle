@@ -155,7 +155,7 @@ void load_text(std::ifstream& stree, Tree& tree,
   std::vector<std::string> tokens;
   std::string line;
   std::getline(stree, line);
-  Impl::tokenize(tokens, line);
+  Oracle::Impl::tokenize(tokens, line);
 
   size_t nfeatures, nclasses, nodecount, maxdepth;
   std::istringstream(tokens[0]) >> nfeatures;

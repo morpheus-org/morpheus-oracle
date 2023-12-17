@@ -30,9 +30,7 @@ int main(int argc, char *argv[]) {
   int result;
   ::testing::InitGoogleTest(&argc, argv);
 
-  Morpheus::initialize(argc, argv);
-  { result = RUN_ALL_TESTS(); }
-  Morpheus::finalize();
+  result = RUN_ALL_TESTS();
 
   return result;
 }
