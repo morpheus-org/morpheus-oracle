@@ -94,8 +94,6 @@ void tune(
 
   int current_state = Morpheus::Oracle::RunFirstTuner::INVALID_STATE;
 
-  // TODO: f.preprocess();
-
   while (!tuner.finished()) {
     double runtime;
     if (f.state_transition(tuner, mirror, host_mirror, current_state)) {
