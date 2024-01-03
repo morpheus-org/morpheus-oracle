@@ -292,6 +292,12 @@ class is_runfirst_functor {
           std::is_base_of<RunFirstFunctorBase<U>, U>::value>::type* = nullptr);
 
   template <class U>
+  static yes& test(
+      U*,
+      typename std::enable_if<std::is_base_of<
+          RunFirstFunctorBase<typename U::base>, U>::value>::type* = nullptr);
+
+  template <class U>
   static no& test(...);
 
  public:
