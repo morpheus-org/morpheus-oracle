@@ -57,9 +57,8 @@ class RunFirstFunctorBase {
   }
 
   template <typename Tuner, typename Dev, typename Host>
-  bool state_transition(const Tuner& tuner, Dev& dev, Host& host,
-                        int& current_state) {
-    return *actual().state_transition(tuner, dev, host, current_state);
+  bool state_transition(const Tuner& tuner, Dev& dev, Host& host) {
+    return *actual().state_transition(tuner, dev, host);
   }
 
   template <typename Dev>

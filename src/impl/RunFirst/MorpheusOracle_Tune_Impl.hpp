@@ -92,13 +92,13 @@ void tune(
   auto mirror      = f.clone(data);
   auto host_mirror = f.clone_host(mirror);
 
-  int current_state = Morpheus::Oracle::RunFirstTuner::INVALID_STATE;
-
   while (!tuner.finished()) {
     double runtime;
-    if (f.state_transition(tuner, mirror, host_mirror, current_state)) {
+    if (f.state_transition(tuner, mirror, host_mirror)) {
       auto start = std::chrono::steady_clock::now();
-      f.run(mirror);
+      for (int i = 0; i < tuner.repetitions(); i++) {
+        f.run(mirror);
+      }
       auto end = std::chrono::steady_clock::now();
 
       runtime = std::chrono::duration_cast<ns>(end - start).count() * 1e-9;

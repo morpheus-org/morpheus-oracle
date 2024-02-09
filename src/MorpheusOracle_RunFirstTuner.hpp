@@ -45,12 +45,12 @@ namespace Oracle {
  */
 
 /**
- * @brief A run-first tuner that selects the best storage format after running
+ * @brief A run-first tuner that selects the best state after running
  * the algorithm multiple times.
  *
  * \par Overview
- * The RunFirstTuner is responsible for tuning for the best sparse matrix
- * storage format by first running the operation multiple times.
+ * The RunFirstTuner is responsible for tuning for the best state by first
+ * running the operation multiple times.
  *
  * \par Example
  * \code
@@ -59,30 +59,7 @@ namespace Oracle {
  * int main(){
  *  Morpheus::initialize();
  *  {
- *    Morpheus::DynamicMatrix<double, Kokkos::HostSpace> A;
- *    Morpheus::CsrMatrix<double, Kokkos::HostSpace> Acsr(4, 3, 6);
- *
- *    // initialize matrix entries
- *    Acsr.row_offsets(0) = 0; Acsr.row_offsets(1) = 2; Acsr.row_offsets(2) = 2;
- *    Acsr.row_offsets(3) = 3; Acsr.row_offsets(4) = 6;
- *
- *    Acsr.column_indices(0) = 0; Acsr.values(0) = 10;
- *    Acsr.column_indices(1) = 2; Acsr.values(1) = 20;
- *    Acsr.column_indices(2) = 2; Acsr.values(2) = 30;
- *    Acsr.column_indices(3) = 0; Acsr.values(3) = 40;
- *    Acsr.column_indices(4) = 1; Acsr.values(4) = 50;
- *    Acsr.column_indices(5) = 2; Acsr.values(5) = 60;
- *
- *    A = Acsr;
- *
- *    // Run the tuner for 10 repetitions and print verbose messages.
- *    Morpheus::Oracle::RunFirstTuner tuner(10, true);
- *
- *    // Tune A for the multiply operation
- *    Morpheus::Oracle::tune_multiply<Kokkos::Serial>(A, tuner);
- *
- *    // Print the tuning report
- *    tuner.print();
+ *    TODO:
  *  }
  *  Morpheus::finalize();
  *
@@ -104,30 +81,35 @@ class RunFirstTuner {
   /**
    * @brief Construct a new RunFirstTuner object
    *
-   * @param rep_limit Number of repetitions to run the tuner for.
+   * @param nstates Number of states to tune for.
+   * @param nsteps Number of repetitions to run each state for.
+   * @param rep_limit Number of repetitions to run the tuning operation for.
    * @param verbose  Whether to print verbose messages.
    */
-  RunFirstTuner(const size_t nstates, const size_t rep_limit = 10,
-                const bool verbose = false)
-      : timings_(nstates * rep_limit, 0),
+  RunFirstTuner(const size_t nstates, const size_t nsteps = 10,
+                const size_t rep_limit = 100, const bool verbose = false)
+      : timings_(nstates * nsteps, 0),
         max_timings_(nstates, 0),
         avg_timings_(nstates, 0),
         min_timings_(nstates, 0),
         state_id_(INVALID_STATE),
         state_count_(0),
         nstates_(nstates),
+        steps_limit_(nsteps),
+        step_count_(0),
         rep_limit_(rep_limit),
-        rep_count_(0),
         verbose_(verbose) {
     if (verbose) {
       std::cout << "RunFirstTuner :: Tuner will run for " << nstates_
                 << " states.\n";
-      std::cout << "                 Each state tunes for "
-                << repetition_limit() << " repetitions.\n";
+      std::cout << "                 Each state tunes for " << steps_limit()
+                << " steps.\n";
+      std::cout << "                 Operation is repeated for "
+                << repetitions() << " times.\n";
 
       std::cout << std::setw(10) << "State ID";
       std::cout << std::setw(3) << "|";
-      std::cout << std::setw(12) << "Repetition" << std::endl;
+      std::cout << std::setw(12) << "Step" << std::endl;
 
       std::cout << std::setw(13) << "|";
       std::cout << std::setw(12) << "Number" << std::endl;
@@ -140,11 +122,11 @@ class RunFirstTuner {
    *
    */
   void operator++() {
-    if (repetition_count() < repetition_limit() - 1) {
-      rep_count_++;
+    if (steps_count() < steps_limit() - 1) {
+      step_count_++;
     } else {
       state_count_++;
-      rep_count_ = 0;
+      step_count_ = 0;
     }
   }
 
@@ -154,7 +136,7 @@ class RunFirstTuner {
    * @param runtime Run-time of the last step.
    */
   void register_run(double runtime) {
-    timings_[state_count() * repetition_limit() + repetition_count()] = runtime;
+    timings_[state_count() * steps_limit() + steps_count()] = runtime;
   }
 
   /**
@@ -167,7 +149,7 @@ class RunFirstTuner {
     if (verbose_) {
       std::cout << std::setw(10) << state_count();
       std::cout << std::setw(3) << "|";
-      std::cout << std::setw(12) << repetition_count();
+      std::cout << std::setw(12) << steps_count();
       std::cout << std::endl;
     }
 
@@ -189,7 +171,7 @@ class RunFirstTuner {
   void reset() {
     state_id_    = INVALID_STATE;
     state_count_ = 0;
-    rep_count_   = 0;
+    step_count_  = 0;
     verbose_     = false;
     timings_.assign(timings_.size(), 0);
     max_timings_.assign(nstates_, -std::numeric_limits<double>::max());
@@ -203,34 +185,36 @@ class RunFirstTuner {
    * (i.e \p finished() returns true), otherwise a run-time exception is thrown.
    *
    */
-  void print() {
-    if ((repetition_count() == 0) && (state_count() == 0)) {
-      std::cout << "Run-first Tuner configured with repetition limit "
-                << repetition_limit() << std::endl;
+  // void print() {
+  template <typename Stream>
+  void print(Stream& ss = std::cout) {
+    if ((steps_count() == 0) && (state_count() == 0)) {
+      ss << "Run-first Tuner configured with step limit set to "
+         << steps_limit() << std::endl;
       return;
     }
 
     if (state_count() >= nstates()) {
       using namespace std;
-      cout << "Tuner executed " << repetition_limit() << " repetitions and "
-           << "optimized for " << nstates() << " states!" << endl;
-      cout << endl;
-      cout << "Tuner statistics:" << endl;
-      cout << "-----------------" << endl;
-      cout << setw(10) << "State ID\t";
-      cout << setw(10) << "tmin\t";
-      cout << setw(10) << "tmax\t";
-      cout << setw(10) << "tavg\t" << endl;
+      ss << "Tuner executed " << steps_limit();
+      ss << " steps and optimized for " << nstates() << " states!";
+      ss << "\n\n";
+      ss << "Tuner statistics:" << endl;
+      ss << "-----------------" << endl;
+      ss << setw(10) << "State ID\t";
+      ss << setw(10) << "tmin\t";
+      ss << setw(10) << "tmax\t";
+      ss << setw(10) << "tavg\t" << endl;
 
       for (int i = 0; i < nstates_; i++) {
-        cout << setw(10) << i;
-        cout << "\t" << setw(10) << setprecision(7) << min_timings_[i];
-        cout << "\t" << setw(10) << setprecision(7) << max_timings_[i];
-        cout << "\t" << setw(10) << setprecision(7) << avg_timings_[i];
-        cout << endl;
+        ss << setw(10) << i;
+        ss << "\t" << setw(10) << setprecision(7) << min_timings_[i];
+        ss << "\t" << setw(10) << setprecision(7) << max_timings_[i];
+        ss << "\t" << setw(10) << setprecision(7) << avg_timings_[i];
+        ss << endl;
       }
 
-      cout << "Optimum State ID: " << state_id() << endl;
+      ss << "Optimum State ID: " << state_id() << endl;
     } else {
       throw std::runtime_error(
           "Tuner is in inconsistent state. Requesting to print the summary can "
@@ -301,14 +285,21 @@ class RunFirstTuner {
    *
    * @return size_t Current repetition count.
    */
-  size_t repetition_count() const { return rep_count_; }
+  size_t steps_count() const { return step_count_; }
 
   /**
-   * @brief Provides the total number of repetitions the tuner runs for.
+   * @brief Provides the total number of steps the tuner runs for each state.
    *
-   * @return size_t Total number of repetitions.
+   * @return size_t Total number of steps per state.
    */
-  size_t repetition_limit() const { return rep_limit_; }
+  size_t steps_limit() const { return steps_limit_; }
+
+  /**
+   * @brief Provides the number of times the tuning operation will be run for.
+   *
+   * @return size_t Total number of times to run the operation.
+   */
+  size_t repetitions() const { return rep_limit_; }
 
   /**
    * @brief Checks if the tuner prints verbose messages.
@@ -326,11 +317,11 @@ class RunFirstTuner {
   void set_verbose(bool verbose = true) { verbose_ = verbose; }
 
   /**
-   * @brief Set the limit of repetitions the tuner will carry out.
+   * @brief Set the limit of steps the tuner will carry out per state.
    *
-   * @param rep_limit Number of repetitions.
+   * @param steps_limit Number of steps per state.
    */
-  void set_repetition_limit(int rep_limit = 10) { rep_limit_ = rep_limit; }
+  void set_steps_limit(int steps_limit = 10) { steps_limit_ = steps_limit; }
 
   /*! \cond */
  private:
@@ -349,10 +340,10 @@ class RunFirstTuner {
   void compute_max_timings_() {
     for (int i = 0; i < nstates_; i++) {
       double maxt = std::numeric_limits<double>::min();
-      for (size_t j = 0; j < rep_limit_; j++) {
-        if (timings_[i * rep_limit_ + j] > maxt) {
-          max_timings_[i] = timings_[i * rep_limit_ + j];
-          maxt            = timings_[i * rep_limit_ + j];
+      for (size_t j = 0; j < steps_limit_; j++) {
+        if (timings_[i * steps_limit_ + j] > maxt) {
+          max_timings_[i] = timings_[i * steps_limit_ + j];
+          maxt            = timings_[i * steps_limit_ + j];
         }
       }
     }
@@ -361,20 +352,20 @@ class RunFirstTuner {
   void compute_avg_timings_() {
     for (int i = 0; i < nstates_; i++) {
       double sumt = 0.0;
-      for (size_t j = 0; j < rep_limit_; j++) {
-        sumt += timings_[i * rep_limit_ + j];
+      for (size_t j = 0; j < steps_limit_; j++) {
+        sumt += timings_[i * steps_limit_ + j];
       }
-      avg_timings_[i] = sumt / (double)rep_limit_;
+      avg_timings_[i] = sumt / (double)steps_limit_;
     }
   }
 
   void compute_min_timings_() {
     for (int i = 0; i < nstates_; i++) {
       double mint = std::numeric_limits<double>::max();
-      for (size_t j = 0; j < rep_limit_; j++) {
-        if (timings_[i * rep_limit_ + j] < mint) {
-          min_timings_[i] = timings_[i * rep_limit_ + j];
-          mint            = timings_[i * rep_limit_ + j];
+      for (size_t j = 0; j < steps_limit_; j++) {
+        if (timings_[i * steps_limit_ + j] < mint) {
+          min_timings_[i] = timings_[i * steps_limit_ + j];
+          mint            = timings_[i * steps_limit_ + j];
         }
       }
     }
@@ -387,8 +378,9 @@ class RunFirstTuner {
   int state_id_;
   int state_count_;
   int nstates_;
+  size_t steps_limit_;
+  size_t step_count_;
   size_t rep_limit_;
-  size_t rep_count_;
   bool verbose_;
   /*! \endcond */
 };
